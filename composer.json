@@ -1,0 +1,17 @@
+{
+    "name": "egarcia/simplext-php-2",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Ezequiel Garcia",
+            "email": "egarcia.informatic.ing@gmail.com"
+        }
+    ],
+    "minimum-stability": "alpha",
+    "require": {
+        "zordius/lightncandy": "^1.2",
+        "league/container": "^3.3",
+        "symfony/filesystem": "^5.1",
+        "vlucas/phpdotenv": "^5.1"
+    }
+}
