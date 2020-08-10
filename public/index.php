@@ -1,9 +1,9 @@
 <?php
 
-include 'vendor/autoload.php';
+include '../vendor/autoload.php';
 date_default_timezone_set('UTC');
 
-use Core\Services\Bootstrap;
+use Core\Bootstrap;
 use DI\ContainerBuilder;
 use Dotenv\Repository\RepositoryBuilder;
 use Dotenv\Repository\Adapter\{EnvConstAdapter, PutenvAdapter};
@@ -14,8 +14,8 @@ $repository = RepositoryBuilder::createWithNoAdapters()
     ->immutable()
     ->make();
 
-$repository->set('ROOT_DIR', __DIR__);
-$dotenv = Dotenv\Dotenv::create($repository, __DIR__);
+$repository->set('ROOT_DIR', dirname(__DIR__) );
+$dotenv = Dotenv\Dotenv::create($repository, dirname(__DIR__));
 
 $dotenv->load();
 $dotenv->required('ENVIROMENT')->allowedValues(['development', 'production']);
