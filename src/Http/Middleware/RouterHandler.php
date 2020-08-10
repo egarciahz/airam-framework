@@ -1,6 +1,6 @@
 <?php
 
-namespace Core\Http;
+namespace Core\Http\Middleware;
 
 use FastRoute\Dispatcher;
 

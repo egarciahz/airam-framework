@@ -1,8 +1,9 @@
 <?php
 
-namespace Core\Http;
+namespace Core\Http\Message;
 
 use Psr\Http\Message\ServerRequestInterface;
+use Core\Http\RouterStatusInterface;
 
 interface RequestInterface extends ServerRequestInterface
 {

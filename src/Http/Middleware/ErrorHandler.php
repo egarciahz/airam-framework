@@ -1,6 +1,6 @@
 <?php
 
-namespace Core\Http;
+namespace Core\Http\Middleware;
 
 use Fig\Http\Message\StatusCodeInterface as StatusCode;
 use Psr\Http\Message\ServerRequestInterface;
