@@ -25,6 +25,7 @@ class ComposerStaticInitfd6f0d74e465f49e4300ec1db8032fe8
         '786bf90caabc9e09b6ad4cc5ca8f0e30' => __DIR__ . '/..' . '/laminas/laminas-diactoros/src/functions/normalize_uploaded_files.legacy.php',
         '751a5a3f463e4be759be31748b61737c' => __DIR__ . '/..' . '/laminas/laminas-diactoros/src/functions/parse_cookie_header.legacy.php',
         '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
+        '253c157292f75eb38082b5acb06f3f01' => __DIR__ . '/..' . '/nikic/fast-route/src/functions.php',
         '538ca81a9a966a6716601ecf48f4eaef' => __DIR__ . '/..' . '/opis/closure/functions.php',
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
         'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
@@ -36,7 +37,6 @@ class ComposerStaticInitfd6f0d74e465f49e4300ec1db8032fe8
         '9ad95be8d1f1c62e52cb995973bf5246' => __DIR__ . '/..' . '/laminas/laminas-stratigility/src/functions/host.legacy.php',
         '44f5a19d6d262baf7ab55c8a8bb56f5a' => __DIR__ . '/..' . '/laminas/laminas-stratigility/src/functions/middleware.legacy.php',
         'dd89a2771fc24829c6aade9a7786bd8f' => __DIR__ . '/..' . '/laminas/laminas-stratigility/src/functions/path.legacy.php',
-        '253c157292f75eb38082b5acb06f3f01' => __DIR__ . '/..' . '/nikic/fast-route/src/functions.php',
         'b33e3d135e5d9e47d845c576147bda89' => __DIR__ . '/..' . '/php-di/php-di/src/functions.php',
     );
 
@@ -60,10 +60,14 @@ class ComposerStaticInitfd6f0d74e465f49e4300ec1db8032fe8
         array (
             'Opis\\Closure\\' => 13,
         ),
+        'M' => 
+        array (
+            'Middlewares\\Utils\\' => 18,
+            'Middlewares\\' => 12,
+        ),
         'L' => 
         array (
             'LightnCandy\\' => 12,
-            'League\\Container\\' => 17,
             'Laminas\\ZendFrameworkBridge\\' => 28,
             'Laminas\\Validator\\' => 18,
             'Laminas\\Uri\\' => 12,
@@ -77,6 +81,10 @@ class ComposerStaticInitfd6f0d74e465f49e4300ec1db8032fe8
         array (
             'Invoker\\' => 8,
             'Interop\\Container\\' => 18,
+        ),
+        'H' => 
+        array (
+            'HttpStatusCodes\\' => 16,
         ),
         'G' => 
         array (
@@ -145,13 +153,18 @@ class ComposerStaticInitfd6f0d74e465f49e4300ec1db8032fe8
         array (
             0 => __DIR__ . '/..' . '/opis/closure/src',
         ),
+        'Middlewares\\Utils\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/middlewares/utils/src',
+        ),
+        'Middlewares\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/middlewares/fast-route/src',
+            1 => __DIR__ . '/..' . '/middlewares/redirect/src',
+        ),
         'LightnCandy\\' => 
         array (
             0 => __DIR__ . '/..' . '/zordius/lightncandy/src',
-        ),
-        'League\\Container\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/league/container/src',
         ),
         'Laminas\\ZendFrameworkBridge\\' => 
         array (
@@ -193,6 +206,10 @@ class ComposerStaticInitfd6f0d74e465f49e4300ec1db8032fe8
         array (
             0 => __DIR__ . '/..' . '/container-interop/container-interop/src/Interop/Container',
         ),
+        'HttpStatusCodes\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/krowinski/http-status-codes/src/HttpStatusCodes',
+        ),
         'GrahamCampbell\\ResultType\\' => 
         array (
             0 => __DIR__ . '/..' . '/graham-campbell/result-type/src',
@@ -219,7 +236,7 @@ class ComposerStaticInitfd6f0d74e465f49e4300ec1db8032fe8
         ),
         'App\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/App',
+            0 => __DIR__ . '/../..' . '/app',
         ),
     );
 

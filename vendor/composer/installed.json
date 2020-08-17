@@ -152,6 +152,53 @@
         ]
     },
     {
+        "name": "krowinski/http-status-codes",
+        "version": "v1.0.0",
+        "version_normalized": "1.0.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/krowinski/http-status-codes.git",
+            "reference": "89a3a1444b81767a75496c994ddd80864db7c46a"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/krowinski/http-status-codes/zipball/89a3a1444b81767a75496c994ddd80864db7c46a",
+            "reference": "89a3a1444b81767a75496c994ddd80864db7c46a",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.4"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "^4.8|^5.7|^6.5"
+        },
+        "time": "2018-10-04T16:53:31+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "HttpStatusCodes\\": "src/HttpStatusCodes/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Kacper Rowiński",
+                "email": "kacper.rowinski@gmail.com"
+            }
+        ],
+        "description": "PHP List of HTTP status codes, messages and description for them.",
+        "keywords": [
+            "http",
+            "http-status-code",
+            "php",
+            "status-codes"
+        ]
+    },
+    {
         "name": "laminas/laminas-diactoros",
         "version": "2.3.1",
         "version_normalized": "2.3.1.0",
@@ -688,77 +735,165 @@
         ]
     },
     {
-        "name": "league/container",
-        "version": "3.3.1",
-        "version_normalized": "3.3.1.0",
+        "name": "middlewares/fast-route",
+        "version": "v2.0.0",
+        "version_normalized": "2.0.0.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/thephpleague/container.git",
-            "reference": "93238f74ff5964aee27a78508cdfbdba1cd338f6"
+            "url": "https://github.com/middlewares/fast-route.git",
+            "reference": "1dabb2f77eda984c94aaebf6ea39aeee3b034628"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/thephpleague/container/zipball/93238f74ff5964aee27a78508cdfbdba1cd338f6",
-            "reference": "93238f74ff5964aee27a78508cdfbdba1cd338f6",
+            "url": "https://api.github.com/repos/middlewares/fast-route/zipball/1dabb2f77eda984c94aaebf6ea39aeee3b034628",
+            "reference": "1dabb2f77eda984c94aaebf6ea39aeee3b034628",
             "shasum": ""
         },
         "require": {
-            "php": "^7.0",
-            "psr/container": "^1.0"
-        },
-        "provide": {
-            "psr/container-implementation": "^1.0"
-        },
-        "replace": {
-            "orno/di": "~2.0"
+            "middlewares/utils": "^3.0",
+            "nikic/fast-route": "^1.0",
+            "php": "^7.2",
+            "psr/http-server-middleware": "^1.0"
         },
         "require-dev": {
-            "phpunit/phpunit": "^6.0",
-            "squizlabs/php_codesniffer": "^3.3"
+            "friendsofphp/php-cs-fixer": "^2.0",
+            "oscarotero/php-cs-fixer-config": "^1.0",
+            "phpunit/phpunit": "^8.1",
+            "squizlabs/php_codesniffer": "^3.0",
+            "zendframework/zend-diactoros": "^2.2"
         },
-        "time": "2020-05-18T08:20:23+00:00",
+        "time": "2019-11-29T12:53:41+00:00",
         "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-3.x": "3.x-dev",
-                "dev-2.x": "2.x-dev",
-                "dev-1.x": "1.x-dev"
-            }
-        },
         "installation-source": "dist",
         "autoload": {
             "psr-4": {
-                "League\\Container\\": "src"
+                "Middlewares\\": "src/"
             }
         },
         "notification-url": "https://packagist.org/downloads/",
         "license": [
             "MIT"
         ],
-        "authors": [
-            {
-                "name": "Phil Bennett",
-                "email": "philipobenito@gmail.com",
-                "homepage": "http://www.philipobenito.com",
-                "role": "Developer"
-            }
-        ],
-        "description": "A fast and intuitive dependency injection container.",
-        "homepage": "https://github.com/thephpleague/container",
+        "description": "Middleware to use FastRoute",
+        "homepage": "https://github.com/middlewares/fast-route",
         "keywords": [
-            "container",
-            "dependency",
-            "di",
-            "injection",
-            "league",
-            "provider",
-            "service"
-        ],
-        "funding": [
-            {
-                "url": "https://github.com/philipobenito",
-                "type": "github"
+            "FastRoute",
+            "fast-route",
+            "http",
+            "middleware",
+            "psr-15",
+            "psr-7",
+            "router",
+            "server"
+        ]
+    },
+    {
+        "name": "middlewares/redirect",
+        "version": "v2.0.0",
+        "version_normalized": "2.0.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/middlewares/redirect.git",
+            "reference": "a7842057ef2cb709c168cc295fb3b5a9afa6f05b"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/middlewares/redirect/zipball/a7842057ef2cb709c168cc295fb3b5a9afa6f05b",
+            "reference": "a7842057ef2cb709c168cc295fb3b5a9afa6f05b",
+            "shasum": ""
+        },
+        "require": {
+            "middlewares/utils": "^3.0",
+            "php": "^7.2",
+            "psr/http-server-middleware": "^1.0"
+        },
+        "require-dev": {
+            "friendsofphp/php-cs-fixer": "^2.0",
+            "oscarotero/php-cs-fixer-config": "^1.0",
+            "phpunit/phpunit": "^8.1",
+            "squizlabs/php_codesniffer": "^3.0",
+            "zendframework/zend-diactoros": "^2.2"
+        },
+        "time": "2019-12-06T21:49:43+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Middlewares\\": "src/"
             }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "description": "A redirect repository for PSR-15 middleware packages",
+        "homepage": "https://github.com/middlewares/redirect",
+        "keywords": [
+            "http",
+            "middleware",
+            "psr-15",
+            "psr-7",
+            "redirect",
+            "server"
+        ]
+    },
+    {
+        "name": "middlewares/utils",
+        "version": "v3.1.0",
+        "version_normalized": "3.1.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/middlewares/utils.git",
+            "reference": "13689487e8f3bba10b6cc66ed206efc8b874163e"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/middlewares/utils/zipball/13689487e8f3bba10b6cc66ed206efc8b874163e",
+            "reference": "13689487e8f3bba10b6cc66ed206efc8b874163e",
+            "shasum": ""
+        },
+        "require": {
+            "php": "^7.2",
+            "psr/container": "^1.0",
+            "psr/http-factory": "^1.0",
+            "psr/http-message": "^1.0",
+            "psr/http-server-middleware": "^1.0"
+        },
+        "require-dev": {
+            "friendsofphp/php-cs-fixer": "^2.0",
+            "guzzlehttp/psr7": "dev-master",
+            "laminas/laminas-diactoros": "^2.2",
+            "nyholm/psr7": "^1.0",
+            "oscarotero/php-cs-fixer-config": "^1.0",
+            "phpunit/phpunit": "^8.1",
+            "slim/psr7": "~0.3",
+            "squizlabs/php_codesniffer": "^3.0",
+            "sunrise/http-message": "^1.0",
+            "sunrise/http-server-request": "^1.0",
+            "sunrise/stream": "^1.0",
+            "sunrise/uri": "^1.0"
+        },
+        "time": "2020-01-19T00:30:41+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Middlewares\\Utils\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "description": "Common utils for PSR-15 middleware packages",
+        "homepage": "https://github.com/middlewares/utils",
+        "keywords": [
+            "PSR-11",
+            "http",
+            "middleware",
+            "psr-15",
+            "psr-17",
+            "psr-7"
         ]
     },
     {
