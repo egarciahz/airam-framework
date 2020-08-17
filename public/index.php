@@ -1,31 +1,20 @@
 <?php
 
+use Core\Application;
+use App\Http\RouterModule;
+
 include '../vendor/autoload.php';
-date_default_timezone_set('UTC');
 
-use Core\Bootstrap;
-use DI\ContainerBuilder;
-use Dotenv\Repository\RepositoryBuilder;
-use Dotenv\Repository\Adapter\{EnvConstAdapter, PutenvAdapter};
+/** @var Application $app */
+$appFactory = require '../src/bootstrap.php';
+$app = $appFactory(__DIR__ . "/../");
 
-$repository = RepositoryBuilder::createWithNoAdapters()
-    ->addAdapter(EnvConstAdapter::class)
-    ->addWriter(PutenvAdapter::class)
-    ->immutable()
-    ->make();
-
-$repository->set('ROOT_DIR', dirname(__DIR__) );
-$dotenv = Dotenv\Dotenv::create($repository, dirname(__DIR__));
-
-$dotenv->load();
-$dotenv->required('ENVIROMENT')->allowedValues(['development', 'production']);
-$dotenv->required('ROOT_DIR');
-
-/** @var Bootstrap $app */
-$app = new Bootstrap(new ContainerBuilder());
+$app->addDefinitions(getenv('ROOT_DIR') . "/app/config/app.php");
 
 if (getenv("ENVIROMENT") === 'production') {
     $app->enableProdMode();
 }
+
+$app->addRouterModule(RouterModule::class);
 
 $app();
