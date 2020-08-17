@@ -2,29 +2,29 @@
 
 namespace Core\Http\Middleware;
 
-use FastRoute\Dispatcher;
+use Core\Http\Message\RouterStatus;
 
-use Fig\Http\Message\StatusCodeInterface as StatusCode;
+use Laminas\Uri\Uri;
+use FastRoute\Dispatcher;
+use HttpStatusCodes\HttpStatusCodes as StatusCode;
+
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use stdClass;
+
 
 class RouterHandler implements MiddlewareInterface
 {
-    /** @var callable $dispatchFactory */
-    private $dispatchFactory;
+    /** @var Dispatcher $dispatcher */
+    private $dispatcher;
 
     /** @var callable $responseFactory */
     private $responseFactory;
 
-    public function __construct(callable $responseFactory, callable $dispatcher)
+    public function __construct(callable $responseFactory, Dispatcher $dispatcher)
     {
-        $this->dispatchFactory = function () use ($dispatcher): Dispatcher {
-            return $dispatcher();
-        };
-
+        $this->dispatcher = $dispatcher;
         $this->responseFactory = function () use ($responseFactory): ResponseInterface {
             return $responseFactory();
         };
@@ -32,48 +32,40 @@ class RouterHandler implements MiddlewareInterface
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        /** @var ResponseInterface $response */
-        $response = ($this->responseFactory)();
-
-        /** @var Dispatcher $dispatcher */
-        $dispatcher = ($this->dispatchFactory)();
-        $uri = $_SERVER['REQUEST_URI'];
-
-        // Strip query string (?foo=bar) and decode URI
-        if (false !== $pos = strpos($uri, '?')) {
-            $uri = substr($uri, 0, $pos);
-        }
-        $uri = rawurldecode($uri);
-        $uri = str_replace("/simplext-php-2",'',$uri);
-        $match = $dispatcher->dispatch($request->getMethod(), $uri);
-        $router = new stdClass();
+        $uri = new Uri((string) $request->getUri());
+        $path = $uri->getPath();
+        $match = $this->dispatcher->dispatch($request->getMethod(), $path);
 
         switch ($match[0]) {
             case Dispatcher::NOT_FOUND:
                 // ... 404 Not Found
-                $router->status = StatusCode::STATUS_NOT_FOUND;
-                $handler->router =  $router;
+                $router = new RouterStatus(StatusCode::HTTP_NOT_FOUND_CODE);
+                $request = $request->withAttribute(self::class, $router);
 
                 return $handler->handle($request);
                 break;
             case Dispatcher::METHOD_NOT_ALLOWED:
                 // ... 405 Method Not Allowed
                 $allowedMethods = $match[1];
-                $router->status = StatusCode::STATUS_METHOD_NOT_ALLOWED;
-                $router->data = $allowedMethods;
-                $handler->router =  $router;
+                $router = new RouterStatus(StatusCode::HTTP_METHOD_NOT_ALLOWED_CODE, $allowedMethods);
+                $request = $request->withAttribute(self::class, $router);
 
                 return $handler->handle($request);
                 break;
             case Dispatcher::FOUND:
-                // ... call $handler with $vars
-                $router->status =  StatusCode::STATUS_FOUND;
-                $router->data = $match;
-                $controller = $match[1];
-
-                $response->getBody()->write("Test: " . $controller );
+                // ... 200 OK
+                $router = new RouterStatus(StatusCode::HTTP_OK_CODE, $match[2], $match[1]);
+                $request = $request->withAttribute(self::class, $router);
                 break;
         }
+
+        /** @var ResponseInterface $response */
+        $response = ($this->responseFactory)();
+
+        $caller = $router->getHandler();
+        $caller = new $caller;
+
+        $response->getBody()->write($caller());
 
         return $response;
     }

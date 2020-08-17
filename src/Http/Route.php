@@ -2,30 +2,45 @@
 
 namespace Core\Http;
 
+use function DI\get;
+
 class Route
 {
-    public $method;
-    public $path;
-    public $handler;
-    private $nested = false;
-
-    /**
-     * @param string|array $method Http method
-     * @param string $path Route uri
-     * @param string|array $handler string value used as controller, array its used for childrens
-     */
-    public function __construct($method, string $path, $handler)
+    static public function get($route, $handler)
     {
-        $this->method = strtoupper($method);
-        $this->path = $path;
-
-        if (is_array($handler)) {
-            $this->nested = true;
-        }
     }
 
-    public function isNested()
+    static public function post($route, $handler)
     {
-        return $this->nested;
+    }
+
+    static public function put($route, $handler)
+    {
+    }
+
+    static public function delete($route, $handler)
+    {
+    }
+
+    static public function head($route, $handler)
+    {
+    }
+
+    static public function patch($route, $handler)
+    {
+    }
+
+    static public function addRoute($httpMethod, $route, $handler)
+    {
+        /** @var Router $router*/
+        $router = get(Router::class);
+        $router->addRoute($httpMethod, $route, $handler);
+    }
+
+    static public function addGroup($route, callable $group)
+    {
+        /** @var Router $router*/
+        $router = get(Router::class);
+        $router->addGroup($route, $group);
     }
 }
