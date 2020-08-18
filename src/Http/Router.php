@@ -15,8 +15,7 @@ class Router extends RouteCollector implements Dispatcher
     private $app;
 
     public function dispatch($httpMethod, $uri)
-    {
-       
+    {       
         $base = new GroupCountBased($this->getData());
 
         return $base->dispatch($httpMethod, $uri);

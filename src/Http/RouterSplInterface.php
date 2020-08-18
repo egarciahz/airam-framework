@@ -2,10 +2,10 @@
 
 namespace Core\Http;
 
-use Core\Service\RouterServiceProvider;
+use Core\Http\Service\RouterProvider;
 
 interface RouterSplInterface
 {
-    public function __construct(RouterServiceProvider $proider);
+    public function __construct(RouterProvider $proider);
     public function register(): void;
 }
