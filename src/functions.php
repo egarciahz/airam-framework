@@ -1,13 +1,15 @@
 <?php
-date_default_timezone_set('UTC');
+
+namespace Core;
 
 use Core\Application;
-use Core\ApplicationInterface;
 use DI\ContainerBuilder;
+use Dotenv\Dotenv;
 use Dotenv\Repository\RepositoryBuilder;
 use Dotenv\Repository\Adapter\{EnvConstAdapter, PutenvAdapter};
 
-return function ($dir): ApplicationInterface {
+function applicationFactory($dir): Application
+{
 
     $repository = RepositoryBuilder::createWithNoAdapters()
         ->addAdapter(EnvConstAdapter::class)
@@ -16,7 +18,7 @@ return function ($dir): ApplicationInterface {
         ->make();
 
     $repository->set('ROOT_DIR', $dir);
-    $dotenv = Dotenv\Dotenv::create($repository, $dir);
+    $dotenv = Dotenv::create($repository, $dir);
 
     $dotenv->load();
     $dotenv->required('ENVIROMENT')->allowedValues(['development', 'production']);
