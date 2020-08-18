@@ -1,5 +1,6 @@
+/app/
 /vendor/
-/assets/
+/public/
 /.cache/
 /.simplext/
 /docs/
