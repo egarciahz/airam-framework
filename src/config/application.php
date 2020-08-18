@@ -2,19 +2,25 @@
 
 namespace Core;
 
+//Container
 use function DI\create;
 use function DI\autowire;
 use function DI\factory;
 
+// Middlewares
+use Middlewares\Whoops as WhoopsHandler;
+use Whoops\Run as Whoops;
+use Whoops\Handler\PrettyPageHandler as WhoopsPrettyPageHandler;
+
+
+// Application
 use Core\Http\Route;
 use Core\Http\Router;
 use Core\Http\Middleware\RouterHandler;
 use Core\Http\Middleware\ErrorHandler as HttpErrorHandler;
+use Core\Http\Middleware\StreamHandler;
 use Core\Service\RouterServiceProvider;
-use Core\Template\TemplateProcessorInterface;
-use Core\Template\TemplateProcessorRuntime;
-use Core\Template\TemplateProcessor;
-//
+// FastRoute
 use FastRoute\RouteParser\Std as RouteStdParser;
 use FastRoute\DataGenerator\GroupCountBased as RouterDataGenerator;
 use FastRoute\{RouteParser, DataGenerator};
@@ -22,13 +28,16 @@ use FastRoute\{RouteParser, DataGenerator};
 use Laminas\Diactoros\Response;
 use Laminas\Diactoros\ServerRequest;
 use Laminas\Diactoros\ServerRequestFactory;
+use Laminas\Diactoros\ResponseFactory;
 use Laminas\HttpHandlerRunner\Emitter\EmitterStack;
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 use Laminas\HttpHandlerRunner\RequestHandlerRunner;
-use Laminas\Stratigility\Middleware\ErrorHandler;
 use Laminas\Stratigility\Middleware\ErrorResponseGenerator;
 use Laminas\Stratigility\MiddlewarePipe;
+use Middlewares\Utils\CallableHandler;
 use Psr\Container\ContainerInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 use Throwable;
 
 /**
@@ -38,17 +47,20 @@ return [
     Route::class => create(),
     Router::class => autowire(),
     RouterServiceProvider::class => autowire(),
+    StreamHandler::class => autowire(),
+    RouterHandler::class => factory(function (ContainerInterface $c) {
+        $router = $c->get(Router::class);
+        return new RouterHandler(function () {
+            return new Response();
+        }, $router);
+    }),
 
     RouteParser::class => create(RouteStdParser::class),
     DataGenerator::class => create(RouterDataGenerator::class),
-
-    FilesystemCache::class => create(),
+    // --
     Application::class => autowire(),
     ApplicationInterface::class => autowire(Application::class),
-    //
-    TemplateProcessorInterface::class => create(TemplateProcessor::class),
-    TemplateProcessorRuntime::class => create(),
-    TemplateProcessor::class => autowire(),
+    // --
     EmitterStack::class => factory(function (ContainerInterface $c) {
         $stack = new EmitterStack();
         $stack->push(new SapiEmitter());
@@ -56,25 +68,35 @@ return [
         // ...
         return $stack;
     }),
+    WhoopsHandler::class => factory(function (ContainerInterface $c) {
+        $whoops = new Whoops();
+        $conf = $c->get("app.config");
+
+        $responseFactory = new ResponseFactory();
+
+        $page = new WhoopsPrettyPageHandler();
+        $page->setPageTitle($conf["name"]);
+        $page->setEditor("vscode");
+
+        $whoops->pushHandler($page);
+        $handler = new WhoopsHandler($whoops, $responseFactory);
+
+        return $handler;
+    }),
     //
     MiddlewarePipe::class => factory(function (ContainerInterface $c) {
-        $isDevMode = Application::isDevMode();
         $app = new MiddlewarePipe();
 
-        // middlewares
-        $app->pipe(new ErrorHandler(function () {
-            return new Response();
-        }, new ErrorResponseGenerator($isDevMode)));
+        // error handler
+        $app->pipe($c->get(WhoopsHandler::class));
 
-        // route handler
-        $app->pipe(new RouterHandler(
-            function () {
-                return new Response();
-            },
-            $c->get(Router::class)
-        ));
+        // router handler
+        $app->pipe($c->get(RouterHandler::class));
 
-        // not found router
+        // middleware stream handler
+        $app->pipe($c->get(StreamHandler::class));
+
+        // http-error handler
         $app->pipe(new HttpErrorHandler(function () {
             return new Response();
         }));

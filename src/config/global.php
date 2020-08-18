@@ -16,6 +16,7 @@ return [
     ],
 
     "app.config" => [
+        "name" => "Simplext PHP",
         "definitionCache" => "App\Cache",
         "buildDir" => "build",
         "proxyDir" => "temp"
