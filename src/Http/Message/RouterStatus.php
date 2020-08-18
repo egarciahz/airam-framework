@@ -8,14 +8,19 @@ class RouterStatus implements RouterStatusInterface
     private $params;
     private $status;
 
-    public function __construct(int $status, array $params = null, string $handler = null)
+    /**
+     * @param int $status
+     * @param array $params
+     * @param string|array|callable $handler
+     */
+    public function __construct(int $status, array $params = null, $handler = null)
     {
         $this->status = $status;
         $this->params = $params;
         $this->handler = $handler;
     }
 
-    public function getHandler(): string
+    public function getHandler()
     {
         return $this->handler;
     }

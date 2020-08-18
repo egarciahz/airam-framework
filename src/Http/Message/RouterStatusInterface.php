@@ -4,7 +4,10 @@ namespace Core\Http\Message;
 
 interface RouterStatusInterface
 {
-    public function getHandler(): string;
+    /**
+     * @return string|array|callable
+     */
+    public function getHandler();
     public function getParams(): array;
     public function getStatus(): int;
 }

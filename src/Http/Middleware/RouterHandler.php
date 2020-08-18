@@ -32,41 +32,32 @@ class RouterHandler implements MiddlewareInterface
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $uri = new Uri((string) $request->getUri());
-        $path = $uri->getPath();
+        $path = (new Uri((string) $request->getUri()))->getPath();
         $match = $this->dispatcher->dispatch($request->getMethod(), $path);
 
         switch ($match[0]) {
             case Dispatcher::NOT_FOUND:
                 // ... 404 Not Found
                 $router = new RouterStatus(StatusCode::HTTP_NOT_FOUND_CODE);
-                $request = $request->withAttribute(self::class, $router);
 
-                return $handler->handle($request);
                 break;
             case Dispatcher::METHOD_NOT_ALLOWED:
                 // ... 405 Method Not Allowed
                 $allowedMethods = $match[1];
                 $router = new RouterStatus(StatusCode::HTTP_METHOD_NOT_ALLOWED_CODE, $allowedMethods);
-                $request = $request->withAttribute(self::class, $router);
 
-                return $handler->handle($request);
                 break;
             case Dispatcher::FOUND:
-                // ... 200 OK
+                // ... 200 OK FOUND
                 $router = new RouterStatus(StatusCode::HTTP_OK_CODE, $match[2], $match[1]);
-                $request = $request->withAttribute(self::class, $router);
+                $request = $request->withAttribute("ResponseFactory", $this->responseFactory);
+
                 break;
+            default:
+                $router = new RouterStatus(StatusCode::HTTP_IM_A_TEAPOT_CODE);
         }
 
-        /** @var ResponseInterface $response */
-        $response = ($this->responseFactory)();
-
-        $caller = $router->getHandler();
-        $caller = new $caller;
-
-        $response->getBody()->write($caller());
-
-        return $response;
+        $request = $request->withAttribute(self::class, $router);
+        return $handler->handle($request);
     }
 }
