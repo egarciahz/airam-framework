@@ -23,6 +23,9 @@ class Application implements ApplicationInterface
     /** @var Container $container */
     public $container;
 
+    /** @var Application $me*/
+    private static $me;
+
     /**
      * @param ContainerBuilder $builder
      * 
@@ -34,7 +37,11 @@ class Application implements ApplicationInterface
             throw new InvalidArgumentException("builder is not a valid param, extpected DI\ContainerBuilder");
         }
 
+        self::$me = $this;
+
         $this->builder = $builder;
+        $this->builder->useAnnotations(true);
+        $this->builder->useAutowiring(true);
     }
 
     public function enableProdMode(): void
@@ -67,11 +74,6 @@ class Application implements ApplicationInterface
         $this->router_module_class = $module_class;
     }
 
-    public static function isDevMode(): bool
-    {
-        return  !self::$production;
-    }
-
     public function isProdMode(): bool
     {
         return self::$production;
@@ -87,13 +89,10 @@ class Application implements ApplicationInterface
         return $this->container->has($id);
     }
 
-    public function __invoke()
+    public function run()
     {
 
         if (!($this->container instanceof Container)) {
-            //$this->builder->useAnnotations(true);
-            $this->builder->useAutowiring(true);
-
             $this->container = $this->builder->build();
         }
 
@@ -109,5 +108,15 @@ class Application implements ApplicationInterface
         $runner->run();
 
         return $this->container;
+    }
+
+    public static function isDevMode(): bool
+    {
+        return  !self::$production;
+    }
+
+    public static function getInstance()
+    {
+        return self::$me;
     }
 }
