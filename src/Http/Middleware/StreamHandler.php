@@ -3,16 +3,17 @@
 namespace Core\Http\Middleware;
 
 use Core\Http\Message\RouterStatus;
+use Core\Http\Message\RouterStatusInterface;
 use Core\Http\Service\RouterProvider;
-use Core\Template\TemplateHandler;
 use HttpStatusCodes\HttpStatusCodes as StatusCode;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use InvalidArgumentException;
 use Psr\Container\ContainerInterface;
+
+use InvalidArgumentException;
 
 class StreamHandler implements MiddlewareInterface
 {
@@ -28,10 +29,10 @@ class StreamHandler implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         /** @var RouterStatus $data */
-        $data = $request->getAttribute(RouterHandler::class);
+        $data = $request->getAttribute(RouterStatusInterface::class);
 
         if (!$data) {
-            $classname = RouterHandler::class;
+            $classname = StreamHandler::class;
             throw new InvalidArgumentException("Attribute request with '{$classname}' not found.");
         }
 
@@ -39,9 +40,6 @@ class StreamHandler implements MiddlewareInterface
             return $handler->handle($request);
         }
 
-        $templateHandler = $this->container->get(TemplateHandler::class);
-        
-        $this->service->addMiddleware($templateHandler);
         return $this->service->run($request, $handler);
     }
 }
