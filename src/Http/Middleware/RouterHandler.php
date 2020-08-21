@@ -3,7 +3,7 @@
 namespace Core\Http\Middleware;
 
 use Core\Http\Message\RouterStatus;
-
+use Core\Http\Message\RouterStatusInterface;
 use Laminas\Uri\Uri;
 use FastRoute\Dispatcher;
 use HttpStatusCodes\HttpStatusCodes as StatusCode;
@@ -19,15 +19,9 @@ class RouterHandler implements MiddlewareInterface
     /** @var Dispatcher $dispatcher */
     private $dispatcher;
 
-    /** @var callable $responseFactory */
-    private $responseFactory;
-
-    public function __construct(callable $responseFactory, Dispatcher $dispatcher)
+    public function __construct(Dispatcher $dispatcher)
     {
         $this->dispatcher = $dispatcher;
-        $this->responseFactory = function () use ($responseFactory): ResponseInterface {
-            return $responseFactory();
-        };
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -50,14 +44,13 @@ class RouterHandler implements MiddlewareInterface
             case Dispatcher::FOUND:
                 // ... 200 OK FOUND
                 $router = new RouterStatus(StatusCode::HTTP_OK_CODE, $match[2], $match[1]);
-                $request = $request->withAttribute("ResponseFactory", $this->responseFactory);
 
                 break;
             default:
                 $router = new RouterStatus(StatusCode::HTTP_IM_A_TEAPOT_CODE);
         }
 
-        $request = $request->withAttribute(self::class, $router);
+        $request = $request->withAttribute(RouterStatusInterface::class, $router);
         return $handler->handle($request);
     }
 }
