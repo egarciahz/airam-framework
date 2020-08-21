@@ -3,13 +3,13 @@
 namespace Core\Template;
 
 use Exception;
-use Throwable;
 
 class TemplateException extends Exception
 {
-    public function __construct(string $message, string $templateName, string $realpath = null)
+    public function __construct(string $message, int $code, string $realpath)
     {
-        $this->message  = $message;
-        $this->template = $templateName;
+        $this->code = $code;
+        $this->message = $message;
+        $this->file = $realpath;
     }
 }
