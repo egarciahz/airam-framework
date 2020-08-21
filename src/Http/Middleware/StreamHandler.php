@@ -18,12 +18,10 @@ use InvalidArgumentException;
 class StreamHandler implements MiddlewareInterface
 {
     private $service;
-    private $container;
 
-    public function __construct(RouterProvider $service, ContainerInterface $container)
+    public function __construct(RouterProvider $service)
     {
         $this->service = $service;
-        $this->container = $container;
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
