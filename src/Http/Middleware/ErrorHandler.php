@@ -3,6 +3,7 @@
 namespace Core\Http\Middleware;
 
 use Core\Http\Message\RouterStatus;
+use Core\Http\Message\RouterStatusInterface;
 use HttpStatusCodes\HttpStatusCodes as StatusCode;
 
 use Psr\Http\Message\ServerRequestInterface;
@@ -18,7 +19,6 @@ class ErrorHandler implements MiddlewareInterface
      * @var callable $responseFactory 
      */
     private $responseFactory;
-
     private $isDevelopmentMode;
 
     public function __construct(callable $responseFactory, bool $isDevelopmentMode = false)
@@ -35,7 +35,7 @@ class ErrorHandler implements MiddlewareInterface
         $response = ($this->responseFactory)();
 
         /** @var RouterStatus|null $router */
-        $router = $request->getAttribute(RouterHandler::class);
+        $router = $request->getAttribute(RouterStatusInterface::class);
         if (!$router) {
             $classname = RouterHandler::class;
             throw new InvalidArgumentException("Attribute request with {$classname} not found.");
