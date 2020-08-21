@@ -24,6 +24,11 @@ class RouterProvider
         $this->stream = new MiddlewarePipe;
     }
 
+    public function app()
+    {
+        return $this->app;
+    }
+
     public function router(): Router
     {
         return $this->router;
@@ -31,12 +36,12 @@ class RouterProvider
 
     public function register(string $path)
     {
-        if (!$this->app->isProdMode()) {
+        if (!$this->app->isProdMode() && file_exists($path)) {
             require $path;
         }
     }
 
-    public function addMiddleware(MiddlewareInterface $middleware)
+    public function pushMiddleware(MiddlewareInterface $middleware)
     {
         $this->stream->pipe($middleware);
     }
