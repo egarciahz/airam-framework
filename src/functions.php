@@ -8,7 +8,7 @@ use Dotenv\Dotenv;
 use Dotenv\Repository\RepositoryBuilder;
 use Dotenv\Repository\Adapter\{EnvConstAdapter, PutenvAdapter};
 
-function applicationFactory($dir): Application
+function applicationFactory($root_dir): Application
 {
 
     $repository = RepositoryBuilder::createWithNoAdapters()
@@ -16,6 +16,8 @@ function applicationFactory($dir): Application
         ->addWriter(PutenvAdapter::class)
         ->immutable()
         ->make();
+
+    $dir = realpath($root_dir);
 
     $repository->set('ROOT_DIR', $dir);
     $dotenv = Dotenv::create($repository, $dir);
@@ -28,7 +30,7 @@ function applicationFactory($dir): Application
     $app = new Application(new ContainerBuilder());
 
     $app->addDefinitions(__DIR__ . '/config/application.php');
-    $app->addDefinitions(__DIR__ . '/config/global.php');
+    $app->addDefinitions(__DIR__ . '/config/cache.php');
 
     return $app;
 };

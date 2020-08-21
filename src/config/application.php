@@ -6,6 +6,7 @@ namespace Core;
 use function DI\create;
 use function DI\autowire;
 use function DI\factory;
+use function DI\get;
 
 // Middlewares
 use Middlewares\Whoops as WhoopsHandler;
@@ -19,7 +20,9 @@ use Core\Http\Router;
 use Core\Http\Middleware\RouterHandler;
 use Core\Http\Middleware\ErrorHandler as HttpErrorHandler;
 use Core\Http\Middleware\StreamHandler;
-use Core\Service\RouterServiceProvider;
+use Core\Http\Service\RouterProvider;
+use Core\Template\Middleware\TemplateHandler;
+use Core\Template\Render\Engine as TemplateEngine;
 // FastRoute
 use FastRoute\RouteParser\Std as RouteStdParser;
 use FastRoute\DataGenerator\GroupCountBased as RouterDataGenerator;
@@ -34,32 +37,31 @@ use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 use Laminas\HttpHandlerRunner\RequestHandlerRunner;
 use Laminas\Stratigility\Middleware\ErrorResponseGenerator;
 use Laminas\Stratigility\MiddlewarePipe;
-use Middlewares\Utils\CallableHandler;
 use Psr\Container\ContainerInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 use Throwable;
 
 /**
  * @return array container application config
  */
 return [
+    Application::class => autowire(),
+    // --
     Route::class => create(),
     Router::class => autowire(),
-    RouterServiceProvider::class => autowire(),
+    RouterProvider::class => autowire(),
     StreamHandler::class => autowire(),
-    RouterHandler::class => factory(function (ContainerInterface $c) {
-        $router = $c->get(Router::class);
-        return new RouterHandler(function () {
-            return new Response();
-        }, $router);
-    }),
-
+    RouterHandler::class => create()->constructor(get(Router::class)),
     RouteParser::class => create(RouteStdParser::class),
     DataGenerator::class => create(RouterDataGenerator::class),
     // --
-    Application::class => autowire(),
-    ApplicationInterface::class => autowire(Application::class),
+    TemplateHandler::class => factory(function (ContainerInterface $c) {
+        $instance = new TemplateHandler($c->get(Application::class), function () {
+            return new Response();
+        });
+
+        return $instance;
+    }),
+    TemplateEngine::class => create(),
     // --
     EmitterStack::class => factory(function (ContainerInterface $c) {
         $stack = new EmitterStack();
@@ -83,7 +85,6 @@ return [
 
         return $handler;
     }),
-    //
     MiddlewarePipe::class => factory(function (ContainerInterface $c) {
         $app = new MiddlewarePipe();
 
@@ -106,9 +107,9 @@ return [
     'ServerRequestGenerator' => factory(function () {
         return [ServerRequestFactory::class, 'fromGlobals'];
     }),
-    'ServerErrorGenerator' => factory(function (ContainerInterface $container) {
-        $isDevMode = Application::isDevMode();
-        return function (Throwable $error) use ($isDevMode) {
+    'ServerErrorGenerator' => factory(function () {
+        return function (Throwable $error) {
+            $isDevMode = Application::isDevMode();
             $generator = new ErrorResponseGenerator($isDevMode);
             return $generator($error, new ServerRequest(), new Response());
         };

@@ -23,13 +23,10 @@ return [
     ],
 
     "router.config" => [
-        "cacheFile" => "build/router.php",
-        'routeParser' => 'FastRoute\\RouteParser\\Std',
-        'dataGenerator' => 'FastRoute\\DataGenerator\\GroupCountBased',
-        'dispatcher' => 'FastRoute\\Dispatcher\\GroupCountBased',
+        "cacheFile" => "build/router.php"
     ],
 
     "template.config" => [
-        "buildDir" => "render",
+        "buildDir" => "render"
     ]
 ];
