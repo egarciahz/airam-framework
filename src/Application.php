@@ -33,10 +33,6 @@ class Application implements ApplicationInterface
      */
     public function __construct(ContainerBuilder $builder)
     {
-        if (!($builder instanceof ContainerBuilder) && !($builder instanceof Container)) {
-            throw new InvalidArgumentException("builder is not a valid param, extpected DI\ContainerBuilder");
-        }
-
         self::$me = $this;
 
         $this->builder = $builder;
@@ -55,6 +51,8 @@ class Application implements ApplicationInterface
             $this->builder->enableDefinitionCache("App\Cache");
             $this->builder->writeProxiesToFile(true, $root . '/.cache/tmp');
             $this->builder->ignorePhpDocErrors(true);
+
+            
         }
     }
 
@@ -68,7 +66,7 @@ class Application implements ApplicationInterface
     public function addRouterModule($module_class): void
     {
         if (false == array_search(RouterSplInterface::class, class_implements($module_class))) {
-            throw new InvalidArgumentException("addRouterModule module is not RouterSplInterface implementation");
+            throw new InvalidArgumentException("RouterModule is not an implementation of RouterSplInterface");
         }
 
         $this->router_module_class = $module_class;
