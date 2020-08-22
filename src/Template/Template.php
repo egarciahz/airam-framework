@@ -10,15 +10,30 @@ use ReflectionMethod;
 use ReflectionProperty;
 use Error;
 
+/**
+ * This trait expose methods for compile and prepare component metadata for the rendering.
+ */
 trait Template
 {
-
+    /**
+     * This property provide data config for template name making.
+     * @var array $template_file_conf
+     */
     private static $template_file_conf = [
         "ext" => "template.html",
     ];
 
+    /**
+     * 
+     * @var string|null $__template_name This property its runtime seting whit the template name path
+     */
     private static $__template_name = null;
 
+    /**
+     * Generate array of type [name => value] from the propertyes
+     * @param ReflectionClass &$reflection
+     * @return array
+     */
     private function __reflectPropertyes(ReflectionClass &$reflection)
     {
         $data = [];
@@ -38,6 +53,11 @@ trait Template
         return $data;
     }
 
+    /**
+     * Generate array of type [(string) name => Closure] from the methods
+     * @param ReflectionClass &$reflection
+     * @return array
+     */
     private function __reflectMethods(ReflectionClass &$reflection)
     {
         $data = [];
@@ -63,6 +83,24 @@ trait Template
         return $data;
     }
 
+    /**
+     * Make an array of type [(string) name => array] from the metadata of the methods, the parameter information will be included in the form:
+     * ```text
+     *  [
+     *      method => [
+     *          [ param => [
+     *              "type" => mixed, 
+     *              "index" => int, 
+     *              "required" => boolean,
+     *              "default" => mixed|null
+     *              ]
+     *          ]
+     *      ] 
+     *  ]
+     * ```
+     * @param ReflectionClass &$reflection
+     * @return array
+     */
     private static function __reflectDataFromSure(ReflectionClass &$reflection)
     {
         $data = [];
