@@ -1,6 +1,11 @@
 {
-    "name": "egarcia/simplext-php-2",
-    "type": "project",
+    "name": "egarciahz/simplext-framework",
+    "license": "MIT",
+    "description": "simplext is a framework for php with a focus on giving web developers a quick start",
+    "keywords": [
+        "framework",
+        "simplext"
+    ],
     "authors": [
         {
             "name": "Ezequiel Garcia",
@@ -8,6 +13,16 @@
         }
     ],
     "minimum-stability": "alpha",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Core\\": "src",
+            "App\\": "app"
+        },
+        "files": [
+            "src/functions.php"
+        ]
+    },
     "require": {
         "php": ">=7.2.0",
         "zordius/lightncandy": "^1.2",
@@ -23,14 +38,5 @@
         "middlewares/redirect": "^2.0",
         "doctrine/orm": "^2.7",
         "middlewares/whoops": "^2.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "Core\\": "src",
-            "App\\": "app"
-        },
-        "files": [
-            "src/functions.php"
-        ]
     }
 }
