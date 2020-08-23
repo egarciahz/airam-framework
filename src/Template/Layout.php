@@ -18,9 +18,4 @@ trait Layout
     {
         $this->__yield_scopes[$name] = $hbs;
     }
-
-    final public static function __isLayout()
-    {
-        return true;
-    }
 }
