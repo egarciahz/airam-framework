@@ -7,7 +7,7 @@ namespace Core;
  */
 return [
     "dir.config" => [
-        "basename" => ".simplext",
+        "basename" => ".cache",
         "folders" => [
             "render",
             "build",
@@ -16,7 +16,6 @@ return [
     ],
 
     "app.config" => [
-        "name" => "Simplext PHP",
         "definitionCache" => "App\Cache",
         "buildDir" => "build",
         "proxyDir" => "temp"
@@ -27,6 +26,23 @@ return [
     ],
 
     "template.config" => [
-        "buildDir" => "render"
+        "helpers" => [
+            "fileExtension" => ".helper.php",
+            "buildDir" => "render/helpers",
+            "dir" =>  "app/Client/helpers",
+            "exclude" => [],
+        ],
+        "components" => [
+            "fileExtension" => ".template.html",
+            "buildDir" => "render/client",
+            "dir" => "app/client",
+            "exclude" => ["helper", "helpers", "partial", "partials"]
+        ],
+        "partials" => [
+            "fileExtension" => ".hbs",
+            "buildDir" => "render/partials",
+            "dir" => "app/Client/",
+            "exclude" => []
+        ]
     ]
 ];
