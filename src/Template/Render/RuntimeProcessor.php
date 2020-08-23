@@ -4,7 +4,7 @@ namespace Core\Template;
 
 use LightnCandy\Runtime;
 
-class TemplateProcessorRuntime extends Runtime
+class RuntimeProcessor extends Runtime
 {
     static public function raw($cx, $v, $ex = 0)
     {

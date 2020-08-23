@@ -2,19 +2,32 @@
 
 namespace Core\Template\Render;
 
+use Core\Application;
 use Core\Template\TemplateInterface;
-use Core\Template\Template;
+
 use LightnCandy\LightnCandy;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RegexIterator;
 
 class Engine
 {
-    private $filesystem;
+    private $rootDir;
+    private $cache;
+    private $app;
 
-    public function __construct()
+    private $blockhelpers = [];
+    private $hbhelpers = [];
+    private $partials = [];
+    private $helpers = [];
+
+    public function __construct(Application $app)
     {
+        $this->rootDir = getenv("ROOT_DIR");
+        $this->app = $app;
     }
 
-    public function helperLoader()
+    public function helperLoader(bool $isDevMode = true)
     {
     }
 
@@ -26,11 +39,21 @@ class Engine
     {
     }
 
-    public function render(Data $input)
+    public function renderComponent(Data $input)
     {
     }
 
-    public function build()
+    private function matchFilesByExtension($folder, $extension)
+    {
+    }
+    
+    // prepara los parciales, ayudantes, configuracion de plantillas y el compilador
+    public function prepare(bool $isDevMode = true)
+    {
+
+    }
+
+    public function build(bool $isDevMode = true)
     {
     }
 }
