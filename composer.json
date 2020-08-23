@@ -20,7 +20,8 @@
             "App\\": "app"
         },
         "files": [
-            "src/functions.php"
+            "src/functions.php",
+            "src/Utils/functions.php"
         ]
     },
     "require": {
