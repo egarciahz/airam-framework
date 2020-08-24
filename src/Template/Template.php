@@ -3,7 +3,7 @@
 namespace Core\Template;
 
 use Core\Template\Render\Data;
-use Core\Utils\Tools;
+use function Core\Utils\path_join;
 
 use ReflectionClass;
 use ReflectionMethod;
@@ -11,37 +11,33 @@ use ReflectionProperty;
 use Error;
 
 /**
- * This trait expose methods for compile and prepare component metadata for the rendering.
+ * This trait expose methods for compile and prepare instance metadata for the rendering.
  */
 trait Template
 {
     /**
-     * This property provide data config for template name making.
-     * @var array $template_file_conf
+     * @var array $template_file_conf This property provide data config for template name making.
      */
     private static $template_file_conf = [
         "ext" => "template.html",
     ];
 
     /**
-     * 
-     * @var string|null $__template_name This property its runtime seting whit the template name path
+     * @var string|null $__template_name This property its runtime setting whit the template name path
      */
     private static $__template_name = null;
+
+    public $yield = "main";
 
     /**
      * Generate array of type [name => value] from the propertyes
      * @param ReflectionClass &$reflection
      * @return array
      */
-    private function __reflectPropertyes(ReflectionClass &$reflection)
+    private function __reflectPropertyes(ReflectionClass &$reflection, array $blacklist)
     {
         $data = [];
         $propertyes = $reflection->getProperties(ReflectionProperty::IS_PUBLIC | ReflectionProperty::IS_PROTECTED);
-
-        $blacklist = [
-            "template_file_conf"
-        ];
 
         foreach ($propertyes as $key => $prop) {
             $name = $prop->getName();
@@ -58,20 +54,10 @@ trait Template
      * @param ReflectionClass &$reflection
      * @return array
      */
-    private function __reflectMethods(ReflectionClass &$reflection)
+    private function __reflectMethods(ReflectionClass &$reflection, array $blacklist)
     {
         $data = [];
         $methods = $reflection->getMethods(ReflectionMethod::IS_PUBLIC | ReflectionMethod::IS_PROTECTED);
-
-        $blacklist = [
-            "__reflectPropertyes",
-            "__reflectMethods",
-            "__reflectDataFromSure",
-            "__toRender",
-            "__toString",
-            "__invoke",
-            "__construct"
-        ];
 
         foreach ($methods as $key => $method) {
             $name = $method->getName();
@@ -92,7 +78,7 @@ trait Template
      *              "type" => mixed, 
      *              "index" => int, 
      *              "required" => boolean,
-     *              "default" => mixed|null
+     *              "default" ?=> mixed|null
      *              ]
      *          ]
      *      ] 
@@ -101,20 +87,10 @@ trait Template
      * @param ReflectionClass &$reflection
      * @return array
      */
-    private static function __reflectDataFromSure(ReflectionClass &$reflection)
+    private static function __reflectDataFromSure(ReflectionClass &$reflection, $blacklist)
     {
         $data = [];
         $methods = $reflection->getMethods(ReflectionMethod::IS_PUBLIC | ReflectionMethod::IS_PROTECTED);
-
-        $blacklist = [
-            "__reflectPropertyes",
-            "__reflectMethods",
-            "__reflectDataFromSure",
-            "__toRender",
-            "__toString",
-            "__invoke",
-            "__construct"
-        ];
 
         foreach ($methods as $key => $method) {
 
@@ -131,9 +107,15 @@ trait Template
                     $mdata["params"][$parameter->getName()] = [
                         "type" => $parameter->getType(),
                         "index" => $parameter->getPosition(),
-                        "required" => !$parameter->isOptional(),
-                        "default" => $parameter->isOptional() ? $parameter->getDefaultValue() : null
+                        "required" => !$parameter->isOptional()
                     ];
+
+                    if ($parameter->isOptional()) {
+                        try {
+                            $mdata["params"][$parameter->getName()]["default"] = $parameter->getDefaultValue();
+                        } catch (\ReflectionException $e) {
+                        }
+                    }
                 }
 
                 $data[] = $mdata;
@@ -143,18 +125,24 @@ trait Template
         return $data;
     }
 
-
-    public static function __toBuild(): Data
+    /**
+     * Make the metadata methods for building template 
+     * 
+     * @param bool $isBuildMode [optional] If is true compile the methods metadata, not else
+     * @param string[] $exclude [optional] Exclude a list of method names
+     * 
+     * @return Data
+     */
+    public static function __toBuild(bool $isBuildMode = true, array $exclude = null): Data
     {
         $reflection = new ReflectionClass(self::class);
-        $methods = self::__reflectDataFromSure($reflection);
 
         $name = $reflection->getShortName();
         $filename = $reflection->getFileName();
         $namespace = $reflection->getNamespaceName();
 
         self::$__template_name = join(".", [$name, self::$template_file_conf['ext']]);
-        self::$__template_name = Tools::path_join(DIRECTORY_SEPARATOR, dirname($filename), self::$__template_name);
+        self::$__template_name = path_join(DIRECTORY_SEPARATOR, dirname($filename), self::$__template_name);
 
         if (!file_exists(self::$__template_name)) {
             throw new Error("Not Found Template File $name from [$namespace] controler.", 500);
@@ -166,22 +154,48 @@ trait Template
 
         $data = new Data;
         $data->name = self::$__template_name;
-        $data->helpers = $methods;
         $data->namespace = $namespace;
+        $data->properties = [
+            "Template" => [
+                "name" => $name,
+                "namespace" => $namespace,
+                "render" => require "./Lib/templateRenderHelper.php"
+            ]
+        ];
+
+        if ($isBuildMode) {
+
+            $reservedNames =  require __DIR__ . "/Lib/reserved_names.php";
+            $exclude = !!$exclude ? array_merge($exclude, $reservedNames) : $reservedNames;
+            $data->methods = self::__reflectDataFromSure($reflection, $exclude);
+        }
+
         return $data;
     }
 
+    /**
+     * Make the instance metadata as array for the renderer
+     * 
+     * @return Data
+     */
     public function __toRender(): Data
     {
         $reflection = new ReflectionClass($this);
+        $buildData = self::__toBuild(false);
 
-        $buildData = self::__toBuild();
+        /** @var string[] $reservedNames */
+        $reservedNames =  require __DIR__ . "/Lib/reserved_names.php";
 
         $data = new Data;
         $data->name = $buildData->name;
         $data->namespace = $buildData->namespace;
-        $data->properties = $this->__reflectPropertyes($reflection);
-        $data->helpers =  $this->__reflectMethods($reflection);
+
+        $data->properties = array_merge_recursive(
+            $this->__reflectPropertyes($reflection, $reservedNames),
+            $buildData->properties
+        );
+
+        $data->methods =  $this->__reflectMethods($reflection, $reservedNames);
 
         return $data;
     }
