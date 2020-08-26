@@ -1,6 +1,6 @@
 <?php
 
-namespace Core\Template;
+namespace Core\Template\Render;
 
 use LightnCandy\Runtime;
 

@@ -22,11 +22,6 @@ trait Template
         "ext" => "template.html",
     ];
 
-    /**
-     * @var string|null $__template_name This property its runtime setting whit the template name path
-     */
-    private static $__template_name = null;
-
     public $yield = "main";
 
     /**
@@ -141,25 +136,25 @@ trait Template
         $filename = $reflection->getFileName();
         $namespace = $reflection->getNamespaceName();
 
-        self::$__template_name = join(".", [$name, self::$template_file_conf['ext']]);
-        self::$__template_name = path_join(DIRECTORY_SEPARATOR, dirname($filename), self::$__template_name);
+        $template_name = join(".", [$name, self::$template_file_conf['ext']]);
+        $template_dir = path_join(DIRECTORY_SEPARATOR, dirname($filename), $template_name);
 
-        if (!file_exists(self::$__template_name)) {
-            throw new Error("Not Found Template File $name from [$namespace] controler.", 500);
+        if (!file_exists($template_dir)) {
+            throw new Error("Not Found Template File $name from [$namespace] controller.", 500);
         }
 
-        if (!is_readable(self::$__template_name)) {
+        if (!is_readable($template_dir)) {
             throw new Error("Template File [$name] doesn't us readable", 500);
         }
 
         $data = new Data;
-        $data->name = self::$__template_name;
+        $data->name = $template_name;
+        $data->file = $template_dir;
         $data->namespace = $namespace;
         $data->properties = [
             "Template" => [
                 "name" => $name,
-                "namespace" => $namespace,
-                "render" => require "./Lib/templateRenderHelper.php"
+                "namespace" => $namespace
             ]
         ];
 
@@ -178,16 +173,17 @@ trait Template
      * 
      * @return Data
      */
-    public function __toRender(): Data
+    public function __toRender(bool $isDevMode = true): Data
     {
         $reflection = new ReflectionClass($this);
-        $buildData = self::__toBuild(false);
-
         /** @var string[] $reservedNames */
         $reservedNames =  require __DIR__ . "/Lib/reserved_names.php";
 
+        $buildData = self::__toBuild(!$isDevMode, $reservedNames);
+
         $data = new Data;
         $data->name = $buildData->name;
+        $data->file = $buildData->file;
         $data->namespace = $buildData->namespace;
 
         $data->properties = array_merge_recursive(
