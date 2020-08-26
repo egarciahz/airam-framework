@@ -1,10 +1,10 @@
 {
-    "name": "egarciahz/simplext-framework",
+    "name": "egarciahz/airam-framework",
     "license": "MIT",
     "description": "simplext is a framework for php with a focus on giving web developers a quick start",
     "keywords": [
         "framework",
-        "simplext"
+        "airam"
     ],
     "authors": [
         {
@@ -39,6 +39,7 @@
         "krowinski/http-status-codes": "^1.0",
         "middlewares/redirect": "^2.0",
         "doctrine/orm": "^2.7",
-        "middlewares/whoops": "^2.0"
+        "middlewares/whoops": "^2.0",
+        "doctrine/annotations": "^1.10"
     }
 }
