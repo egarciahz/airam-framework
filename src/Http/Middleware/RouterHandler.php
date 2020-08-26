@@ -2,12 +2,13 @@
 
 namespace Core\Http\Middleware;
 
+use Core\Application;
 use Core\Http\Message\RouterStatus;
 use Core\Http\Message\RouterStatusInterface;
 use Laminas\Uri\Uri;
 use FastRoute\Dispatcher;
 use HttpStatusCodes\HttpStatusCodes as StatusCode;
-
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -18,14 +19,22 @@ class RouterHandler implements MiddlewareInterface
 {
     /** @var Dispatcher $dispatcher */
     private $dispatcher;
+    private $app;
 
-    public function __construct(Dispatcher $dispatcher)
+    public function __construct(Dispatcher $dispatcher, Application $app)
     {
         $this->dispatcher = $dispatcher;
+        $this->app = $app;
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
+
+        if (!$this->app->isProdMode()) {
+            $routerModule = $this->app->get("AppMainRouterModule");
+            $routerModule->register();
+        }
+        
         $path = (new Uri((string) $request->getUri()))->getPath();
         $match = $this->dispatcher->dispatch($request->getMethod(), $path);
 
