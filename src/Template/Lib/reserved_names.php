@@ -7,9 +7,9 @@ return [
     "template_file_conf",
     "__template_name",
     // methods
+    "setYield",
     "__isLayout",
     "__isTemplate",
-    "setYield",
     "__reflectPropertyes",
     "__reflectMethods",
     "__reflectDataFromSure",
