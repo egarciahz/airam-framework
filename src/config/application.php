@@ -50,7 +50,7 @@ return [
     Router::class => autowire(),
     RouterProvider::class => autowire(),
     StreamHandler::class => autowire(),
-    RouterHandler::class => create()->constructor(get(Router::class)),
+    RouterHandler::class => create()->constructor(get(Router::class), get(Application::class)),
     RouteParser::class => create(RouteStdParser::class),
     DataGenerator::class => create(RouterDataGenerator::class),
     // --
@@ -61,7 +61,7 @@ return [
 
         return $instance;
     }),
-    TemplateEngine::class => create(),
+    TemplateEngine::class => autowire(),
     // --
     EmitterStack::class => factory(function (ContainerInterface $c) {
         $stack = new EmitterStack();
