@@ -2,6 +2,8 @@
 
 namespace Core\Template\Render;
 
+use function Core\Template\Lib\{is_layout};
+
 trait Rendereable
 {
     public $layout = [
@@ -20,25 +22,33 @@ trait Rendereable
      */
     private function getLayoutByName(string $name)
     {
-        $layout = $this->layout[$name];
-        if ($layout && Data::isLayout($layout)) {
-            $component = $this->app->get($layout);
-            return $component;
+        $layout = isset($this->layout[$name]) ? $this->layout[$name] : null;
+        if ($layout && is_layout($layout)) {
+            return  $this->app->get($layout);
         }
 
         return $layout;
     }
-    
+
+    /**
+     * @return LayoutInterface|null
+     */
     public function getLayout()
     {
         return $this->getLayoutByName("layout");
     }
 
+    /**
+     * @return LayoutInterface|null
+     */
     public function getNotFoundView()
     {
         return $this->getLayoutByName("notFound");
     }
 
+    /**
+     * @return LayoutInterface|null
+     */
     public function getHttpErrorView()
     {
         return $this->getLayoutByName("error");
