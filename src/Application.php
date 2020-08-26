@@ -4,6 +4,8 @@ namespace Core;
 
 use Core\Http\RouterSplInterface;
 use DI\{Container, ContainerBuilder};
+use function DI\autowire;
+
 use Laminas\HttpHandlerRunner\RequestHandlerRunner;
 use InvalidArgumentException;
 
@@ -12,7 +14,7 @@ class Application implements ApplicationInterface
 {
 
     /** @var string $router_module_class RouterModule classpath */
-    private $router_module_class;
+    private $router_module_class = null;
 
     /** @var bool $production */
     private static $production = false;
@@ -51,8 +53,6 @@ class Application implements ApplicationInterface
             $this->builder->enableDefinitionCache("App\Cache");
             $this->builder->writeProxiesToFile(true, $root . '/.cache/tmp');
             $this->builder->ignorePhpDocErrors(true);
-
-            
         }
     }
 
@@ -66,7 +66,7 @@ class Application implements ApplicationInterface
     public function addRouterModule($module_class): void
     {
         if (false == array_search(RouterSplInterface::class, class_implements($module_class))) {
-            throw new InvalidArgumentException("RouterModule is not an implementation of RouterSplInterface");
+            throw new InvalidArgumentException("RouterModule [$module_class] is not an implementation of RouterSplInterface");
         }
 
         $this->router_module_class = $module_class;
@@ -95,11 +95,8 @@ class Application implements ApplicationInterface
         }
 
         $this->container->set(self::class, $this);
+        $this->container->set("AppMainRouterModule", autowire($this->router_module_class));
 
-        if (!self::$production && $this->router_module_class) {
-            $routerModule = $this->container->get($this->router_module_class);
-            $routerModule->register();
-        }
 
         /** @var RequestHandlerRunner $runner */
         $runner = $this->container->get(RequestHandlerRunner::class);
