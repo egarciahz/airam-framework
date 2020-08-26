@@ -21,7 +21,8 @@
         },
         "files": [
             "src/functions.php",
-            "src/Utils/functions.php"
+            "src/Utils/functions.php",
+            "src/Template/Lib/functions.php"
         ]
     },
     "require": {
