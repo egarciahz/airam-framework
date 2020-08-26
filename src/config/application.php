@@ -72,12 +72,10 @@ return [
     }),
     WhoopsHandler::class => factory(function (ContainerInterface $c) {
         $whoops = new Whoops();
-        $conf = $c->get("app.config");
-
         $responseFactory = new ResponseFactory();
 
         $page = new WhoopsPrettyPageHandler();
-        $page->setPageTitle($conf["name"]);
+        $page->setPageTitle(getenv("PAGE_TITLE"));
         $page->setEditor("vscode");
 
         $whoops->pushHandler($page);

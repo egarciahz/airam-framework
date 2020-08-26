@@ -25,6 +25,7 @@ function applicationFactory($root_dir): Application
     $dotenv->load();
     $dotenv->required('ENVIROMENT')->allowedValues(['development', 'production']);
     $dotenv->required('ROOT_DIR');
+    $dotenv->required('PAGE_TITLE');
 
     /** @var Application $app */
     $app = new Application(new ContainerBuilder());
