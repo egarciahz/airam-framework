@@ -7,7 +7,7 @@ namespace Airam;
  */
 return [
     "dir.config" => [
-        "basename" => ".cache",
+        "basename" => ".airam",
         "folders" => [
             "render",
             "build",
@@ -16,7 +16,7 @@ return [
     ],
 
     "app.config" => [
-        "definitionCache" => "App\Cache",
+        "definitionCache" => "Airam\Cache",
         "buildDir" => "build",
         "proxyDir" => "temp"
     ],
