@@ -1,6 +1,6 @@
 <?php
 
-namespace Core;
+namespace Airam;
 
 use DI\ContainerBuilder;
 use Psr\Container\ContainerInterface;

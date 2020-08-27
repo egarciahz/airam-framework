@@ -1,6 +1,6 @@
 <?php
 
-namespace Core;
+namespace Airam;
 
 //Container
 use function DI\create;
@@ -15,14 +15,14 @@ use Whoops\Handler\PrettyPageHandler as WhoopsPrettyPageHandler;
 
 
 // Application
-use Core\Http\Route;
-use Core\Http\Router;
-use Core\Http\Middleware\RouterHandler;
-use Core\Http\Middleware\ErrorHandler as HttpErrorHandler;
-use Core\Http\Middleware\StreamHandler;
-use Core\Http\Service\RouterProvider;
-use Core\Template\Middleware\TemplateHandler;
-use Core\Template\Render\Engine as TemplateEngine;
+use Airam\Http\Route;
+use Airam\Http\Router;
+use Airam\Http\Middleware\RouterHandler;
+use Airam\Http\Middleware\ErrorHandler as HttpErrorHandler;
+use Airam\Http\Middleware\StreamHandler;
+use Airam\Http\Service\RouterProvider;
+use Airam\Template\Middleware\TemplateHandler;
+use Airam\Template\Render\Engine as TemplateEngine;
 // FastRoute
 use FastRoute\RouteParser\Std as RouteStdParser;
 use FastRoute\DataGenerator\GroupCountBased as RouterDataGenerator;

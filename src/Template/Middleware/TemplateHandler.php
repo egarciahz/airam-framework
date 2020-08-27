@@ -1,15 +1,15 @@
 <?php
 
-namespace Core\Template\Middleware;
+namespace Airam\Template\Middleware;
 
-use Core\Application;
-use Core\Http\Router;
-use Core\Http\Message\RouterStatus;
-use Core\Http\Message\RouterStatusInterface;
-use Core\Template\LayoutInterface;
-use Core\Template\Render\Data;
-use Core\Template\TemplateInterface;
-use Core\Template\Render\Engine as TemplateEngine;
+use Airam\Application;
+use Airam\Http\Router;
+use Airam\Http\Message\RouterStatus;
+use Airam\Http\Message\RouterStatusInterface;
+use Airam\Template\LayoutInterface;
+use Airam\Template\Render\Data;
+use Airam\Template\TemplateInterface;
+use Airam\Template\Render\Engine as TemplateEngine;
 
 use HttpStatusCodes\HttpStatusCodes as StatusCode;
 use Laminas\Diactoros\Response\HtmlResponse;
@@ -18,7 +18,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
-use function Core\Template\Lib\{is_template};
+use function Airam\Template\Lib\{is_template};
 
 class TemplateHandler implements MiddlewareInterface
 {

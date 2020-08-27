@@ -1,8 +1,8 @@
 <?php
 
-namespace Core;
+namespace Airam;
 
-use Core\Http\RouterSplInterface;
+use Airam\Http\RouterSplInterface;
 use DI\{Container, ContainerBuilder};
 use function DI\autowire;
 

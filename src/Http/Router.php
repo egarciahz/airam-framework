@@ -1,12 +1,12 @@
 <?php
 
-namespace Core\Http;
+namespace Airam\Http;
 
 use FastRoute\{RouteCollector, Dispatcher};
 use FastRoute\Dispatcher\GroupCountBased;
 
-use Core\Application;
-use Core\Template\Render\Rendereable;
+use Airam\Application;
+use Airam\Template\Render\Rendereable;
 
 class Router extends RouteCollector implements Dispatcher
 {

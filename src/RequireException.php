@@ -1,6 +1,6 @@
 <?php
 
-namespace Core;
+namespace Airam;
 
 use Exception;
 use Throwable;

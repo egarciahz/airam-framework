@@ -1,7 +1,7 @@
 <?php
 
-namespace Core\Template;
-use Core\Template\Render\Data;
+namespace Airam\Template;
+use Airam\Template\Render\Data;
 
 interface TemplateInterface
 {

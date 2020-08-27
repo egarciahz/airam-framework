@@ -1,9 +1,9 @@
 <?php
 
-namespace Core\Template\Render;
+namespace Airam\Template\Render;
 
-use Core\Template\Layout;
-use Core\Template\Template;
+use Airam\Template\Layout;
+use Airam\Template\Template;
 
 class Data
 {

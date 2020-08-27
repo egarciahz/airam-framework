@@ -1,8 +1,8 @@
 <?php
 
-namespace Core\Http;
+namespace Airam\Http;
 
-use Core\Http\Service\RouterProvider;
+use Airam\Http\Service\RouterProvider;
 
 interface RouterSplInterface
 {

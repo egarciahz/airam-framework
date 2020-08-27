@@ -1,6 +1,6 @@
 <?php
 
-namespace Core\Template\Render;
+namespace Airam\Template\Render;
 
 use LightnCandy\Runtime;
 

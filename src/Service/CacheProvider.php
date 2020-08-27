@@ -1,10 +1,10 @@
 <?php
 
-namespace Core;
+namespace Airam;
 
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
-use function Core\Utils\path_join;
+use function Airam\Utils\path_join;
 
 /**
  * @Injectable()

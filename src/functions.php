@@ -1,8 +1,8 @@
 <?php
 
-namespace Core;
+namespace Airam;
 
-use Core\Application;
+use Airam\Application;
 use DI\ContainerBuilder;
 use Dotenv\Dotenv;
 use Dotenv\Repository\RepositoryBuilder;

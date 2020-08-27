@@ -1,8 +1,8 @@
 <?php
 
-namespace Core\Http;
+namespace Airam\Http;
 
-use Core\Application;
+use Airam\Application;
 use InvalidArgumentException;
 
 class Route

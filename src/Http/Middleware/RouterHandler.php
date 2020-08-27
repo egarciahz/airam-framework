@@ -1,10 +1,10 @@
 <?php
 
-namespace Core\Http\Middleware;
+namespace Airam\Http\Middleware;
 
-use Core\Application;
-use Core\Http\Message\RouterStatus;
-use Core\Http\Message\RouterStatusInterface;
+use Airam\Application;
+use Airam\Http\Message\RouterStatus;
+use Airam\Http\Message\RouterStatusInterface;
 use Laminas\Uri\Uri;
 use FastRoute\Dispatcher;
 use HttpStatusCodes\HttpStatusCodes as StatusCode;

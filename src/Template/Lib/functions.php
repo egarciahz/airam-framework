@@ -1,16 +1,16 @@
 <?php
 
-namespace Core\Template\Lib;
+namespace Airam\Template\Lib;
 
-use Core\Template\Render\Data;
-use Core\Template\{Template, Layout};
+use Airam\Template\{Template, Layout};
 
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ReflectionClass;
 use RegexIterator;
 
-use function Core\Utils\path_join;
+use function Airam\Utils\closureFactory;
+use function Airam\Utils\path_join;
 use function str_replace;
 
 function makeTemplateFilePath(Data $data)

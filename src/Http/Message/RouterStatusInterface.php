@@ -1,6 +1,6 @@
 <?php
 
-namespace Core\Http\Message;
+namespace Airam\Http\Message;
 
 interface RouterStatusInterface
 {

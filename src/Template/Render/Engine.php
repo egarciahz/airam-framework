@@ -1,16 +1,25 @@
 <?php
 
-namespace Core\Template\Render;
+namespace Airam\Template\Render;
 
-use Core\Application;
-use Core\Template\LayoutInterface;
-use Core\Template\TemplateInterface;
+use Closure;
+use Airam\Application;
+use Airam\Template\LayoutInterface;
+use Airam\Template\TemplateInterface;
 use LightnCandy\LightnCandy;
 
 use ErrorException;
 
-use function Core\Template\Lib\{is_layout, makeTemplateFileName, matchFilesByExtension, makeTemplateFilePath};
-use function Core\Utils\path_join;
+use function Airam\Template\Lib\{
+    is_layout,
+    makeTemplateFileName,
+    matchFilesByExtension,
+    closureCodeCompiler
+};
+
+use function Airam\Utils\{
+    path_join,
+};
 
 class Engine
 {

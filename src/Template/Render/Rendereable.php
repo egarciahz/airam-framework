@@ -1,8 +1,8 @@
 <?php
 
-namespace Core\Template\Render;
+namespace Airam\Template\Render;
 
-use function Core\Template\Lib\{is_layout};
+use function Airam\Template\Lib\{is_layout};
 
 trait Rendereable
 {

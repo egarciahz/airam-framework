@@ -1,8 +1,8 @@
 <?php
 
-namespace Core\Utils;
+namespace Airam\Utils;
 
-use Core\Utils\Collection;
+use Airam\Utils\Collection;
 
 class Map extends Collection
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Core\Template;
+namespace Airam\Template;
 
 use Exception;
 

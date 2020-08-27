@@ -1,7 +1,7 @@
 {
     "name": "egarciahz/airam-framework",
     "license": "MIT",
-    "description": "Airam its a web component oriented framework for the fast startup of web applications",
+    "description": "Airam is a web component oriented framework for the fast startup of web applications",
     "keywords": [
         "framework",
         "airam"
@@ -16,8 +16,7 @@
     "prefer-stable": true,
     "autoload": {
         "psr-4": {
-            "Core\\": "src",
-            "App\\": "app"
+            "Airam\\": "src"
         },
         "files": [
             "src/functions.php",

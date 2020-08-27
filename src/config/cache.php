@@ -1,6 +1,6 @@
 <?php
 
-namespace Core;
+namespace Airam;
 
 /**
  * @return array cache definition folders

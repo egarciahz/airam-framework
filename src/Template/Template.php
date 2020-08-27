@@ -1,9 +1,9 @@
 <?php
 
-namespace Core\Template;
+namespace Airam\Template;
 
-use Core\Template\Render\Data;
-use function Core\Utils\path_join;
+use Airam\Template\Render\Data;
+use function Airam\Utils\path_join;
 
 use ReflectionClass;
 use ReflectionMethod;

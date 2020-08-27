@@ -1,10 +1,10 @@
 <?php
 
-namespace Core\Http\Service;
+namespace Airam\Http\Service;
 
-use Core\Application;
-use Core\Http\Router;
-use Core\RequireException;
+use Airam\Application;
+use Airam\Http\Router;
+use Airam\RequireException;
 use Laminas\Stratigility\MiddlewarePipe;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
