@@ -1,6 +1,6 @@
 <?php
 
-namespace Core\Utils;
+namespace Airam\Utils;
 
 function randomId(int $length = 16): string
 {
