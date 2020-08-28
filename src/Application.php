@@ -4,6 +4,8 @@ namespace Airam;
 
 use Airam\Http\RouterSplInterface;
 use DI\{Container, ContainerBuilder};
+use Dotenv\Dotenv;
+
 use function DI\autowire;
 
 use Laminas\HttpHandlerRunner\RequestHandlerRunner;
@@ -27,6 +29,9 @@ class Application implements ApplicationInterface
 
     /** @var Application $me*/
     private static $me;
+
+    /** @var Dotenv $env */
+    public $env;
 
     /**
      * @param ContainerBuilder $builder

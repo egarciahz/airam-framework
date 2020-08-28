@@ -29,6 +29,7 @@ function applicationFactory($root_dir): Application
 
     /** @var Application $app */
     $app = new Application(new ContainerBuilder());
+    $app->env =  $dotenv;
 
     $app->addDefinitions(__DIR__ . '/config/application.php');
     $app->addDefinitions(__DIR__ . '/config/cache.php');
