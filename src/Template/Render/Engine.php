@@ -50,16 +50,52 @@ class Engine
     /**
      * @param string[] $paths
      */
-    protected function compileHelpers(array $paths)
+    protected function compileHelpers(array $paths, string $buildDir)
     {
         foreach ($paths as $path) {
             if (!file_exists($path)) {
                 continue;
             }
 
-            // ...
+            $helper = require $path;
+
+            if ($helper instanceof Closure) {
+                $name = preg_replace("/\..+$/", "", basename($path));
+                $code = closureCodeCompiler($helper, $name);
+
+                array_push($this->helpers, $code);
+            }
+
+            if (gettype($helper) === "array") {
+                foreach ($helper as $name => $predicate) {
+                    if ($predicate instanceof Closure) {
+                        $code = closureCodeCompiler($predicate, $name);
+                        array_push($this->helpers, $code);
+                        continue;
+                    }
+
+                    array_push($this->helpers, "\"{$name}\" => " . var_export($predicate, true));
+                }
+            }
         }
-    }
+
+        $code = join(PHP_EOL, [
+            "<?php",
+            "use Airam\Application;",
+            "use function Airam\Utils\{path_join,randomId,class_use};",
+            "use function Airam\Template\Lib\{is_layout,is_template};",
+            "return [", join("," . PHP_EOL, $this->helpers), "];"
+        ]);
+
+        if (file_exists($buildDir)) {
+            $file = path_join(DIRECTORY_SEPARATOR, $buildDir, "helper_bundle.php");
+            $size = file_put_contents($file, $code);
+            if ($size === 0) {
+                throw new ErrorException("Dont created file during the compilation.");
+            }
+
+            return $file;
+        }
 
     protected function compilePartial(string $path)
     {
