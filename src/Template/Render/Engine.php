@@ -232,18 +232,49 @@ class Engine
 
     public function build(bool $isDevMode = true)
     {
-        $this->compileHelpers(matchFilesByExtension("", [".helper.php"]));
+        $root = getenv("ROOT_DIR");
+        # for Development
+        if ($isDevMode) {
+            $helpers = $this->compileHelpers(
+                matchFilesByExtension(
+                    path_join(DIRECTORY_SEPARATOR, $root, $this->config["helpers"]["dir"]),
+                    $this->config["helpers"]["fileExtension"],
+                    $this->config["helpers"]["excludeDir"],
+                ),
+                path_join(DIRECTORY_SEPARATOR, $root, ".cache", $this->config["helpers"]["buildDir"])
+            );
 
-        $partials = matchFilesByExtension("", [".partial.hbs", ".partial.html"]);
-        foreach ($partials as $partial) {
-            $this->compilePartial($partial);
+            $partials = $this->compilePartials(
+                matchFilesByExtension(
+                    path_join(DIRECTORY_SEPARATOR, $root, $this->config["partials"]["dir"]),
+                    $this->config["partials"]["fileExtension"],
+                    $this->config["partials"]["excludeDir"],
+                ),
+                path_join(DIRECTORY_SEPARATOR, $root, ".cache", $this->config["partials"]["buildDir"])
+            );
+
+            $helpers = loadResource($helpers);
+            $partials = loadResource($partials);
+
+            /** prepare context */
+            return $this->prepare($isDevMode, [
+                "helpers" =>  $helpers,
+                "partials" => $partials
+            ]);
         }
 
-        if (!$isDevMode) {
-            $templates = matchFilesByExtension("", [".template.html"]);
-            foreach ($templates as $template) {
-                $this->compileTemplate($template);
-            }
+        # For Production
+        $templates = matchFilesByExtension(
+            path_join(DIRECTORY_SEPARATOR, $root, $this->config["templates"]["dir"]),
+            $this->config["templates"]["fileExtension"],
+            $this->config["templates"]["excludeDir"]
+        );
+
+        foreach ($templates as $path) {
+            $this->compileTemplate(
+                $path,
+                path_join(DIRECTORY_SEPARATOR, $root, ".cache", $this->config["templates"]["buildDir"])
+            );
         }
     }
 }
