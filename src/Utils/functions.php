@@ -2,6 +2,9 @@
 
 namespace Airam\Utils;
 
+use Opis\Closure\SerializableClosure;
+use Closure;
+
 function randomId(int $length = 16): string
 {
     $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -30,4 +33,15 @@ function path_join(string $separator, ...$args): string
     $initial_char = is_array($args[0]) === true ? $args[0][0][0] : $args[0][0];
 
     return ($initial_char ===  $separator ? $separator : '') . join($separator, $paths);
+}
+
+function closureFactory(Closure $closure)
+{
+    $serializable = new SerializableClosure($closure);
+    $code = $serializable->serialize();
+
+    $code = preg_replace('/^(a|[\@\d]).*(\;s\:+[0-9])*\:"function./', "function", $code);
+    $code = preg_replace('/(\"\;s\:+[0-9]*\:"scope.*)$/', "", $code);
+    
+    return $code;
 }
