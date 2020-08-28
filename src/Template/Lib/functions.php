@@ -13,14 +13,6 @@ use function Airam\Utils\closureFactory;
 use function Airam\Utils\path_join;
 use function str_replace;
 
-function makeTemplateFilePath(Data $data)
-{
-    $file = str_replace("\\", "_", $data->namespace);
-    $file .= str_replace("/\.+$/", ".html",  "_{$data->name}");
-
-    return $file;
-}
-
 function makeTemplateFileName(string $origin)
 {
     $name = preg_replace("/^([a-z\\" . DIRECTORY_SEPARATOR . "]).+app\\" . DIRECTORY_SEPARATOR . "/", "", $origin);
