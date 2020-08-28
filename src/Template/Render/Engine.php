@@ -91,28 +91,70 @@ class Engine
             $file = path_join(DIRECTORY_SEPARATOR, $buildDir, "helper_bundle.php");
             $size = file_put_contents($file, $code);
             if ($size === 0) {
-                throw new ErrorException("Dont created file during the compilation.");
+                throw new ErrorException("Could not create file during compilation of helpers");
             }
 
             return $file;
         }
 
-    protected function compilePartial(string $path)
-    {
-        if (!file_exists($path)) {
-            return null;
-        }
-
-        // ...
+        return null;
     }
 
-    protected function compileTemplate(string $path)
+    protected function compilePartials(array $paths, string $buildDir)
+    {
+        foreach ($paths as $path) {
+            if (!file_exists($path)) {
+                continue;
+            }
+
+            $name = preg_replace("/\..+$/", "", basename($path));
+
+            $partial = file_get_contents($path);
+            $this->partials[] = "\"{$name}\" => \"{$partial}\"";
+        }
+
+        $code = join(PHP_EOL, [
+            "<?php",
+            "return [", join("," . PHP_EOL, $this->partials), "];"
+        ]);
+
+        if (file_exists($buildDir)) {
+            $file = path_join(DIRECTORY_SEPARATOR, $buildDir, "partial_bundle.php");
+            $size = file_put_contents($file, $code);
+            if ($size === 0) {
+                throw new ErrorException("Could not create file during compilation of partials");
+            }
+
+            return $file;
+        }
+
+        return null;
+    }
+
+    protected function compileTemplate(string $path, string $buildDir)
     {
         if (!file_exists($path)) {
             return null;
         }
 
-        // ...
+        $template = file_get_contents($path);
+        $code = LightnCandy::compile($template, $this->context);
+        $code = join(PHP_EOL, [
+            "<?php ",
+            $code
+        ]);
+
+        if (file_exists($buildDir)) {
+            $file = makeTemplateFileName($path);
+            $file = path_join(DIRECTORY_SEPARATOR, $buildDir, $file);
+
+            $size = file_put_contents($file, $code);
+            if ($size === 0) {
+                throw new ErrorException("Could not create file during compilation of template: [$path]");
+            }
+        }
+
+        return $file;
     }
 
     /**
