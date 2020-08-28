@@ -25,6 +25,10 @@ function path_join(string $separator, ...$args): string
         $paths = array_merge($paths, (array) $arg);
     }
 
+    if (count($paths) === 0) {
+        return $separator;
+    }
+
     $paths = array_map(function ($p) use ($separator) {
         return trim($p,  $separator);
     }, $paths);
