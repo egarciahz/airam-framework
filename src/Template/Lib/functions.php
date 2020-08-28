@@ -11,6 +11,9 @@ use Closure;
 
 use function Airam\Utils\{
     path_join,
+    class_use,
+    closureFactory
+};
 use function str_replace;
 
 function makeTemplateFileName(string $origin)
@@ -67,4 +70,18 @@ function closureCodeCompiler(Closure $closure, string $name)
 function passport()
 {
     return null;
+}
+
+/**
+ * eval php file wrapper
+ * @param string $path absolute file path
+ */
+function loadResource(string $path)
+{
+    if (!file_exists($path)) {
+        return false;
+    }
+
+    $result = require $path;
+    return $result;
 }
