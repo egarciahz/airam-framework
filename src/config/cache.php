@@ -27,22 +27,22 @@ return [
 
     "template.config" => [
         "helpers" => [
-            "fileExtension" => ".helper.php",
+            "fileExtension" => [".helper.php"],
             "buildDir" => "render/helpers",
             "dir" =>  "app/Client/helpers",
-            "exclude" => [],
+            "excludeDir" => ["example","builkd"],
         ],
-        "components" => [
-            "fileExtension" => ".template.html",
-            "buildDir" => "render/client",
-            "dir" => "app/client",
-            "exclude" => ["helper", "helpers", "partial", "partials"]
+        "templates" => [
+            "fileExtension" => [".template.html"],
+            "buildDir" => "render/templates",
+            "dir" => "app/Client",
+            "excludeDir" => ["helper", "helpers", "partial", "partials"]
         ],
         "partials" => [
-            "fileExtension" => ".hbs",
+            "fileExtension" => [".hbs", ".partial.html", ".partial.hbs"],
             "buildDir" => "render/partials",
             "dir" => "app/Client/",
-            "exclude" => []
+            "excludeDir" => ["helper", "helpers", "partial", "partials"]
         ]
     ]
 ];
