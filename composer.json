@@ -16,7 +16,7 @@
     "prefer-stable": true,
     "autoload": {
         "psr-4": {
-            "Airam\\": "src"
+            "Airam\\": "src/Airam",
         },
         "files": [
             "src/functions.php",
