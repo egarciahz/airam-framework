@@ -14,9 +14,12 @@
     ],
     "minimum-stability": "alpha",
     "prefer-stable": true,
+    "bin": [
+        "bin/doctrine"
+    ],
     "autoload": {
         "psr-4": {
-            "Airam\\": "src/Airam",
+            "Airam\\": "src/Airam"
         },
         "files": [
             "src/functions.php",
