@@ -6,10 +6,9 @@ use Airam\Http\RouterSplInterface;
 use DI\{Container, ContainerBuilder};
 use Dotenv\Dotenv;
 
-use function DI\autowire;
-
 use Laminas\HttpHandlerRunner\RequestHandlerRunner;
 use InvalidArgumentException;
+use function DI\autowire;
 
 
 class Application implements ApplicationInterface
@@ -101,7 +100,7 @@ class Application implements ApplicationInterface
 
         $this->container->set(self::class, $this);
         $this->container->set("AppMainRouterModule", autowire($this->router_module_class));
-
+        
 
         /** @var RequestHandlerRunner $runner */
         $runner = $this->container->get(RequestHandlerRunner::class);
