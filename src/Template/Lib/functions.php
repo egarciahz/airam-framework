@@ -6,20 +6,15 @@ use Airam\Template\{Template, Layout};
 
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use ReflectionClass;
 use RegexIterator;
+use Closure;
 
-use function Airam\Utils\closureFactory;
-use function Airam\Utils\path_join;
+use function Airam\Utils\{
+    path_join,
+    class_use,
+    closureFactory
+};
 use function str_replace;
-
-function makeTemplateFilePath(Data $data)
-{
-    $file = str_replace("\\", "_", $data->namespace);
-    $file .= str_replace("/\.+$/", ".html",  "_{$data->name}");
-
-    return $file;
-}
 
 function makeTemplateFileName(string $origin)
 {
@@ -29,31 +24,25 @@ function makeTemplateFileName(string $origin)
     return $name;
 }
 
-function matchFilesByExtension(string $folder, array $extensions, array $fileList = [])
+function matchFilesByExtension(string $folder, array $extensions, array $ignoreDirs = [], ?array $fileList = [])
 {
     $dir = new RecursiveDirectoryIterator($folder);
     $iter = new RecursiveIteratorIterator($dir);
     $files = new RegexIterator($iter, '/(' . path_join("|", $extensions) . ')$/');
     $files->setMode(RegexIterator::MATCH);
 
+    $exclude =  "({$folder}" . DIRECTORY_SEPARATOR . "+)*(" . path_join("|", $ignoreDirs) . ")";
+    $exclude = "/^" . str_replace(DIRECTORY_SEPARATOR, "\\" . DIRECTORY_SEPARATOR, $exclude) . ".+$/";
+
     foreach ($files as $file) {
-        $fileList[] = $file->getPathname();
+        $path = $file->getPathname();
+        if (count($ignoreDirs) > 0 && preg_match($exclude, $path) !== 0) {
+            continue;
+        }
+        $fileList[] = $path;
     }
 
     return $fileList;
-}
-
-function class_use($target, $trait): bool
-{
-    $traits = [];
-    if (gettype($target) === "string") {
-        $traits = class_exists($target) ? class_uses($target) : "";
-    } else {
-        $ref = new ReflectionClass($target);
-        $traits = $ref->getTraitNames();
-    }
-
-    return  array_search($trait, $traits) !== false;
 }
 
 function is_template($ref)
@@ -64,4 +53,35 @@ function is_template($ref)
 function is_layout($ref)
 {
     return class_use($ref, Template::class) && class_use($ref, Layout::class);
+}
+
+function closureCodeCompiler(Closure $closure, string $name)
+{
+    if ($closure instanceof Closure) {
+        $code = closureFactory($closure);
+        return " \"{$name}\" => {$code}";
+    }
+    return " \"{$name}\" => \"passport\" ";
+}
+
+/**
+ * neutral element of render
+ */
+function passport()
+{
+    return null;
+}
+
+/**
+ * eval php file wrapper
+ * @param string $path absolute file path
+ */
+function loadResource(string $path)
+{
+    if (!file_exists($path)) {
+        return false;
+    }
+
+    $result = require $path;
+    return $result;
 }
