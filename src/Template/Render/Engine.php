@@ -2,36 +2,33 @@
 
 namespace Airam\Template\Render;
 
-use Closure;
-use Airam\Application;
 use Airam\Template\LayoutInterface;
 use Airam\Template\TemplateInterface;
 use LightnCandy\LightnCandy;
-
-use ErrorException;
 
 use function Airam\Template\Lib\{
     is_layout,
     makeTemplateFileName,
     matchFilesByExtension,
-    closureCodeCompiler
+    closureCodeCompiler,
+    loadResource
 };
+use function Airam\Utils\path_join;
 
-use function Airam\Utils\{
-    path_join,
-};
+use ErrorException;
+use Closure;
 
 class Engine
 {
-    /** @var Application $app */
-    private $app;
+    private $context = [];
+    private $config;
 
     private $partials = [];
     private $helpers = [];
 
-    public function __construct(Application $app)
+    public function __construct(array $config)
     {
-        $this->app = $app;
+        $this->config = $config;
     }
 
     public function loadResources()
@@ -126,7 +123,7 @@ class Engine
         return $renderer($context);
     }
 
-    public function prepare(bool $isDevMode = true)
+    public function prepare(bool $isDevMode = true, array $overrides = [])
     {
         $config = [
             "flags" => ($isDevMode ?
