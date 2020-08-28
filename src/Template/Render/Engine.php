@@ -179,32 +179,28 @@ class Engine
      */
     public function render($object)
     {
-        $isDevMode = !$this->app->isProdMode();
+        $isDevMode = true;
         $data = $object->__toRender($isDevMode);
 
         if ($isDevMode) {
 
-            $config = $this->prepare($isDevMode);
-            $compiled = LightnCandy::compile(file_get_contents($data->file), $config);
+            $context = $this->context;
+            $template = file_get_contents($data->file);
+            $compiled = LightnCandy::compile($template, $context);
             $renderer = LightnCandy::prepare($compiled);
 
             $data->properties["Template"]["file"] = $data->file;
         } else {
 
+            $buildDir = path_join(DIRECTORY_SEPARATOR, getenv("ROOT_DIR"), ".cache", $this->config["templates"]["buildDir"]);
             $file = makeTemplateFileName($data->file);
-            $file = path_join(DIRECTORY_SEPARATOR, getenv("ROOT_DIR"), ".cache", "render", $file);
-            $data->properties["Template"]["file"] = $file;
+            $file = path_join(DIRECTORY_SEPARATOR, $buildDir, $file);
 
             if (!file_exists($file)) {
-
-                $config = $this->prepare($isDevMode);
-                $phpStr = LightnCandy::compile(file_get_contents($data->file), $config);
-                $size = file_put_contents($file, $phpStr, LOCK_EX);
-                if ($size === 0) {
-                    throw new ErrorException("Dont created file during compilation.", 500);
-                }
+                $file = $this->compileTemplate($data->file, $buildDir);
             }
 
+            $data->properties["Template"]["file"] = $file;
             $renderer = require $file;
         }
 
