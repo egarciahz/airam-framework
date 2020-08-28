@@ -6,12 +6,11 @@ use Airam\Template\{Template, Layout};
 
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use ReflectionClass;
 use RegexIterator;
 use Closure;
 
-use function Airam\Utils\closureFactory;
-use function Airam\Utils\path_join;
+use function Airam\Utils\{
+    path_join,
 use function str_replace;
 
 function makeTemplateFileName(string $origin)
@@ -41,19 +40,6 @@ function matchFilesByExtension(string $folder, array $extensions, array $ignoreD
     }
 
     return $fileList;
-}
-
-function class_use($target, $trait): bool
-{
-    $traits = [];
-    if (gettype($target) === "string") {
-        $traits = class_exists($target) ? class_uses($target) : "";
-    } else {
-        $ref = new ReflectionClass($target);
-        $traits = $ref->getTraitNames();
-    }
-
-    return  array_search($trait, $traits) !== false;
 }
 
 function is_template($ref)

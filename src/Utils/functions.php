@@ -4,6 +4,7 @@ namespace Airam\Utils;
 
 use Opis\Closure\SerializableClosure;
 use Closure;
+use ReflectionClass;
 
 function randomId(int $length = 16): string
 {
@@ -48,4 +49,17 @@ function closureFactory(Closure $closure)
     $code = preg_replace('/(\"\;s\:+[0-9]*\:"scope.*)$/', "", $code);
     
     return $code;
+}
+
+function class_use($target, $trait): bool
+{
+    $traits = [];
+    if (gettype($target) === "string") {
+        $traits = class_exists($target) ? class_uses($target) : "";
+    } else {
+        $ref = new ReflectionClass($target);
+        $traits = $ref->getTraitNames();
+    }
+
+    return  array_search($trait, $traits) !== false;
 }
