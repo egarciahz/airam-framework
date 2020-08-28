@@ -31,9 +31,20 @@ class Engine
         $this->config = $config;
     }
 
-    public function loadResources()
+    public function loadResources(bool $isDevMode = true)
     {
-        // load partials and helpers from build
+        $root = getenv("ROOT_DIR");
+        $helpers = path_join(DIRECTORY_SEPARATOR, $root, ".cache", $this->config["helpers"]["buildDir"], "helpers_bundle.php");
+        $partials = path_join(DIRECTORY_SEPARATOR, $root, ".cache", $this->config["helpers"]["buildDir"], "partials_bundle.php");
+
+        $helpers = loadResource($helpers);
+        $partials = loadResource($partials);
+
+        /** prepare context */
+        return $this->prepare($isDevMode, [
+            "helpers" =>  $helpers,
+            "partials" => $partials
+        ]);
     }
 
     /**
