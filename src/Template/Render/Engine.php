@@ -125,7 +125,8 @@ class Engine
 
     public function prepare(bool $isDevMode = true, array $overrides = [])
     {
-        $config = [
+
+        $context = [
             "flags" => ($isDevMode ?
                 (LightnCandy::FLAG_ERROR_EXCEPTION | LightnCandy::FLAG_RENDER_DEBUG)
                 : LightnCandy::FLAG_ERROR_LOG) | // options for error catching and debug
@@ -134,15 +135,14 @@ class Engine
                 LightnCandy::FLAG_ADVARNAME |
                 LightnCandy::FLAG_NAMEDARG |
                 LightnCandy::FLAG_PARENT,
-            "helpers" => $this->helpers,
-            "partials" => $this->partials,
-            'prepartial' => function ($context, $template, $name) {
+            "prepartial" => function ($context, $template, $name) {
                 return "<!-- partial start: $name -->$template<!-- partial end: $name -->";
             }
         ];
 
+        $this->context = array_merge($context, $overrides);
 
-        return $config;
+        return $this->context;
     }
 
     public function build(bool $isDevMode = true)
