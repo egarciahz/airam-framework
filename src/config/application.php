@@ -61,7 +61,7 @@ return [
 
         return $instance;
     }),
-    TemplateEngine::class => autowire(),
+    TemplateEngine::class => create()->constructor(get("template.config")),
     // --
     EmitterStack::class => factory(function (ContainerInterface $c) {
         $stack = new EmitterStack();
