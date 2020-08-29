@@ -194,7 +194,7 @@ class Engine
             $data->properties["Template"]["file"] = $data->file;
         } else {
 
-            $buildDir = path_join(DIRECTORY_SEPARATOR, getenv("ROOT_DIR"), ".cache", $this->config["templates"]["buildDir"]);
+            $buildDir = path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["templates"]["buildDir"]);
             $file = makeTemplateFileName($data->file);
             $file = path_join(DIRECTORY_SEPARATOR, $buildDir, $file);
 
@@ -206,8 +206,8 @@ class Engine
             $renderer = require $file;
         }
 
-        $context = array_merge_recursive($data->properties, $data->methods);
-        return $renderer($context);
+        $toRender = array_merge_recursive($data->properties, $data->methods);
+        return $renderer($toRender);
     }
 
     public function prepare(bool $isDevMode = true, array $overrides = [])
