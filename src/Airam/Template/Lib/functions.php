@@ -79,7 +79,7 @@ function passport()
 function loadResource(string $path)
 {
     if (!file_exists($path)) {
-        return false;
+        return null;
     }
 
     $result = require $path;
