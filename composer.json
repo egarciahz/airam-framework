@@ -15,7 +15,7 @@
     "minimum-stability": "alpha",
     "prefer-stable": true,
     "bin": [
-        "bin/doctrine"
+        "bin/airam"
     ],
     "autoload": {
         "psr-4": {

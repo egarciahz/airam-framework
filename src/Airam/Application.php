@@ -101,9 +101,9 @@ class Application implements ApplicationInterface
 
         $this->container->set(self::class, $this);
         $this->container->set("AppMainRouterModule", autowire($this->router_module_class));
-        
+
         $engine = $this->container->get(TemplateEngine::class);
-        $engine->build(self::$production);
+        $engine->build(self::isDevMode());
 
         /** @var RequestHandlerRunner $runner */
         $runner = $this->container->get(RequestHandlerRunner::class);
