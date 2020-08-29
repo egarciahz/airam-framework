@@ -3,6 +3,7 @@
 namespace Airam;
 
 use Airam\Http\RouterSplInterface;
+use Airam\Template\Render\Engine as TemplateEngine;
 use DI\{Container, ContainerBuilder};
 use Dotenv\Dotenv;
 
@@ -101,6 +102,8 @@ class Application implements ApplicationInterface
         $this->container->set(self::class, $this);
         $this->container->set("AppMainRouterModule", autowire($this->router_module_class));
         
+        $engine = $this->container->get(TemplateEngine::class);
+        $engine->build(self::$production);
 
         /** @var RequestHandlerRunner $runner */
         $runner = $this->container->get(RequestHandlerRunner::class);
