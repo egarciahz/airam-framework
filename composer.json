@@ -22,9 +22,9 @@
             "Airam\\": "src/Airam"
         },
         "files": [
-            "src/functions.php",
-            "src/Utils/functions.php",
-            "src/Template/Lib/functions.php"
+            "src/Airam/functions.php",
+            "src/Airam/Utils/functions.php",
+            "src/Airam/Template/Lib/functions.php"
         ]
     },
     "require": {
