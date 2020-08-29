@@ -70,9 +70,9 @@ class Application implements ApplicationInterface
 
     public function addRouterModule($module_class): void
     {
-        if (false == array_search(RouterSplInterface::class, class_implements($module_class))) {
+        /*if (false == array_search(RouterSplInterface::class, class_implements($module_class))) {
             throw new InvalidArgumentException("RouterModule [$module_class] is not an implementation of RouterSplInterface");
-        }
+        }*/
 
         $this->router_module_class = $module_class;
     }
