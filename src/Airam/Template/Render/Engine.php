@@ -26,16 +26,18 @@ class Engine
     private $partials = [];
     private $helpers = [];
 
+    private $root;
+
     public function __construct(array $config)
     {
         $this->config = $config;
+        $this->root = getenv("ROOT_DIR");
     }
 
     public function loadResources(bool $isDevMode = true)
     {
-        $root = getenv("ROOT_DIR");
-        $helpers = path_join(DIRECTORY_SEPARATOR, $root, ".cache", $this->config["helpers"]["buildDir"], "helpers_bundle.php");
-        $partials = path_join(DIRECTORY_SEPARATOR, $root, ".cache", $this->config["helpers"]["buildDir"], "partials_bundle.php");
+        $helpers = path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["helpers"]["buildDir"], "helpers_bundle.php");
+        $partials = path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["partials"]["buildDir"], "partials_bundle.php");
 
         $helpers = loadResource($helpers);
         $partials = loadResource($partials);
@@ -119,7 +121,7 @@ class Engine
         ]);
 
         if (file_exists($buildDir)) {
-            $file = path_join(DIRECTORY_SEPARATOR, $buildDir, "partial_bundle.php");
+            $file = path_join(DIRECTORY_SEPARATOR, $buildDir, "partials_bundle.php");
             $size = file_put_contents($file, $code);
             if ($size === 0) {
                 throw new ErrorException("Could not create file during compilation of partials");
