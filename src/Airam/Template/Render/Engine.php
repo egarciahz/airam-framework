@@ -234,49 +234,46 @@ class Engine
 
     public function build(bool $isDevMode = true)
     {
-        $root = getenv("ROOT_DIR");
-        # for Development
-        if ($isDevMode) {
-            $helpers = $this->compileHelpers(
-                matchFilesByExtension(
-                    path_join(DIRECTORY_SEPARATOR, $root, $this->config["helpers"]["dir"]),
-                    $this->config["helpers"]["fileExtension"],
-                    $this->config["helpers"]["excludeDir"],
-                ),
-                path_join(DIRECTORY_SEPARATOR, $root, ".cache", $this->config["helpers"]["buildDir"])
-            );
 
-            $partials = $this->compilePartials(
-                matchFilesByExtension(
-                    path_join(DIRECTORY_SEPARATOR, $root, $this->config["partials"]["dir"]),
-                    $this->config["partials"]["fileExtension"],
-                    $this->config["partials"]["excludeDir"],
-                ),
-                path_join(DIRECTORY_SEPARATOR, $root, ".cache", $this->config["partials"]["buildDir"])
-            );
 
-            $helpers = loadResource($helpers);
-            $partials = loadResource($partials);
-
-            /** prepare context */
-            return $this->prepare($isDevMode, [
-                "helpers" =>  $helpers,
-                "partials" => $partials
-            ]);
-        }
-
-        # For Production
-        $templates = matchFilesByExtension(
-            path_join(DIRECTORY_SEPARATOR, $root, $this->config["templates"]["dir"]),
-            $this->config["templates"]["fileExtension"],
-            $this->config["templates"]["excludeDir"]
+        $this->compileHelpers(
+            matchFilesByExtension(
+                path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["helpers"]["dir"]),
+                $this->config["helpers"]["fileExtension"],
+                $this->config["helpers"]["excludeDir"],
+            ),
+            path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["helpers"]["buildDir"])
         );
 
-        foreach ($templates as $path) {
-            $this->compileTemplate(
-                $path,
-                path_join(DIRECTORY_SEPARATOR, $root, ".cache", $this->config["templates"]["buildDir"])
+        $this->compilePartials(
+            matchFilesByExtension(
+                path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["partials"]["dir"]),
+                $this->config["partials"]["fileExtension"],
+                $this->config["partials"]["excludeDir"],
+            ),
+            path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["partials"]["buildDir"])
+        );
+
+        $this->loadResources($isDevMode);
+
+        if (!$isDevMode) {
+            throw new \Error("Production mode not yet implemented");
+            exit;
+            # for Production
+            /*
+            $templates = matchFilesByExtension(
+                path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["templates"]["dir"]),
+                $this->config["templates"]["fileExtension"],
+                $this->config["templates"]["excludeDir"]
             );
+
+            foreach ($templates as $path) {
+                $this->compileTemplate(
+                    $path,
+                    path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["templates"]["buildDir"])
+                );
+            }
+        */
         }
     }
 }
