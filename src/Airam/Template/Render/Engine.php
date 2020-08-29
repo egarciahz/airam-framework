@@ -179,9 +179,9 @@ class Engine
     /**
      * @param TemplateInterface $object
      */
-    public function render($object)
+    public function render($object, bool $isDevMode = true)
     {
-        $isDevMode = true;
+
         $data = $object->__toRender($isDevMode);
 
         if ($isDevMode) {
