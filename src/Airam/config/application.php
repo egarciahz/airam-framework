@@ -19,6 +19,7 @@ use Airam\Http\Route;
 use Airam\Http\Router;
 use Airam\Http\Middleware\RouterHandler;
 use Airam\Http\Middleware\ErrorHandler as HttpErrorHandler;
+use Airam\Http\Middleware\StatusHandler;
 use Airam\Http\Middleware\StreamHandler;
 use Airam\Http\Service\RouteService;
 use Airam\Service\ApplicationService;
@@ -52,6 +53,7 @@ return [
     Router::class => autowire(),
     RouteService::class => autowire(),
     StreamHandler::class => autowire(),
+    StatusHandler::class => autowire(),
     RouterHandler::class => create()->constructor(get(Router::class), get(ApplicationService::class)),
     RouteParser::class => create(RouteStdParser::class),
     DataGenerator::class => create(RouterDataGenerator::class),
