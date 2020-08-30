@@ -72,6 +72,6 @@ function passport()
     return null;
 }
 
-/**
- * eval php file wrapper
+function cleanFileName(string $path){
+    return preg_replace("/\..+$/", "", basename($path));
 }
