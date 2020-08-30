@@ -2,12 +2,11 @@
 
 namespace Airam\Template\Middleware;
 
-use Airam\Application;
+use Airam\Http\Lib\RouterStatusInterface;
 use Airam\Http\Router;
 use Airam\Http\Message\RouterStatus;
-use Airam\Http\Message\RouterStatusInterface;
+use Airam\Service\ApplicationService;
 use Airam\Template\LayoutInterface;
-use Airam\Template\Render\Data;
 use Airam\Template\TemplateInterface;
 use Airam\Template\Render\Engine as TemplateEngine;
 
@@ -22,36 +21,29 @@ use function Airam\Template\Lib\{is_template};
 
 class TemplateHandler implements MiddlewareInterface
 {
-    private $app;
-    private $responseFactory;
+    private $service;
+    private $response;
 
-    public function __construct(Application $app, ?callable $responseFactory)
+    public function __construct(ApplicationService $service, ResponseInterface $response)
     {
-        $this->app = $app;
-        $this->responseFactory = function () use ($responseFactory): ResponseInterface {
-            return $responseFactory();
-        };
+        $this->service = $service;
+        $this->response = $response;
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        /** @var RouterStatus $status */
-        $status = $request->getAttribute(RouterStatusInterface::class);
+        /** @var RouterStatusInterface $status */
+        $status = $request->getAttribute(Router::HANDLE_STATUS_CODE);
         if ($status->getStatus() !== StatusCode::HTTP_OK_CODE) {
             return $handler->handle($request);
         }
-
-        $missing_response_error = StatusCode::getDescription(StatusCode::HTTP_EXPECTATION_FAILED_CODE);
-
-        /** @var ResponseInterface $response */
-        $response = ($this->responseFactory)();
 
         /** @var callable|string|null $routeHandler */
         $routeHandler = $status->getHandler();
 
         if (!$routeHandler) {
-            $status = 
-            $request = $request->withAttribute(RouterStatusInterface::class, $status);
+            $router = new RouterStatus(StatusCode::HTTP_EXPECTATION_FAILED_CODE, $status->getUri());
+            $request = $request->withAttribute(Router::HANDLE_STATUS_CODE, $status);
             return $handler->handle($request);
         }
 
@@ -60,23 +52,24 @@ class TemplateHandler implements MiddlewareInterface
         } else if (class_exists($routeHandler)) {
 
             /** @var TemplateInterface $controller */
-            $controller = $this->app->get($routeHandler);
+            $controller = $this->service->app()->get($routeHandler);
 
             if (is_template($routeHandler)) {
                 /** @var Router $router */
-                $router = $this->app->get(Router::class);
+                $router = $this->service->app()->get(Router::class);
 
-                /** @var TemplateEngine $templating*/
-                $templating = $this->app->get(TemplateEngine::class);
+                /** @var TemplateEngine $renderer*/
+                $renderer = $this->service->app()->get(TemplateEngine::class);
 
-                /** @var LayoutInterface|null $controller */
                 $layout = $router->getLayout();
+                /** @var LayoutInterface|null $layout */
+                $layout = $this->service->app()->get($layout);
 
-                $html = $layout ? $templating->layout($layout, $controller) : $templating->render($controller);
-                $result = new HtmlResponse($html, 200);
+                $html = $layout ? $renderer->layout($layout, $controller) : $renderer->render($controller);
+                $result = new HtmlResponse($html);
             } else {
 
-                $result = is_callable($controller) ? $controller($request) : $missing_response_error;
+                $result = is_callable($controller) ? $controller($request) : StatusCode::getDescription(StatusCode::HTTP_EXPECTATION_FAILED_CODE);
             }
         }
 
@@ -84,7 +77,7 @@ class TemplateHandler implements MiddlewareInterface
             return $result;
         }
 
-        $response->getBody()->write($result);
-        return $response;
+        $this->response->getBody()->write($result);
+        return $this->response;
     }
 }
