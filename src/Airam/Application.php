@@ -3,7 +3,7 @@
 namespace Airam;
 
 use Airam\Http\Router;
-use Airam\Http\RouterSplInterface;
+use Airam\Http\Lib\RouterSplInterface;
 use Airam\Template\Render\Engine as TemplateEngine;
 use DI\{Container, ContainerBuilder};
 use Dotenv\Dotenv;
