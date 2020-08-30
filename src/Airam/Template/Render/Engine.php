@@ -13,7 +13,7 @@ use function Airam\Template\Lib\{
     closureCodeCompiler,
     cleanFileName
 };
-use function Airam\Utils\{
+use function Airam\Commons\{
     path_join,
     loadResource
 };
@@ -87,7 +87,7 @@ class Engine
         $code = join(PHP_EOL, [
             "<?php",
             "use Airam\Application;",
-            "use function Airam\Utils\{path_join,randomId,class_use};",
+            "use function Airam\Commons\{path_join,randomId,class_use};",
             "use function Airam\Template\Lib\{is_layout,is_template};",
             "return [", join("," . PHP_EOL, $this->helpers), "];"
         ]);
