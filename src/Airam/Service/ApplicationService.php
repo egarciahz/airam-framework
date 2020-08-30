@@ -1,6 +1,6 @@
 <?php
 
-namespace Airam\Http\Service;
+namespace Airam\Service;
 
 use Airam\Application;
 use Airam\Http\Router;
@@ -9,13 +9,12 @@ use Laminas\Stratigility\MiddlewarePipe;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 
-use Throwable;
 use Exception;
 
 /**
  * @Injectable()
  */
-class RouterProvider
+class ApplicationService
 {
     private $app;
     private $router;
