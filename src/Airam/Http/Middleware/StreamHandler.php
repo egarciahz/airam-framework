@@ -2,39 +2,38 @@
 
 namespace Airam\Http\Middleware;
 
-use Airam\Http\Message\RouterStatus;
-use Airam\Http\Message\RouterStatusInterface;
-use Airam\Http\Service\RouterProvider;
+use Airam\Http\Router;
+use Airam\Service\ApplicationService;
+use Airam\Http\Lib\RouterStatusInterface;
 use HttpStatusCodes\HttpStatusCodes as StatusCode;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Psr\Container\ContainerInterface;
 
 use InvalidArgumentException;
 
 class StreamHandler implements MiddlewareInterface
 {
+    /** @var ApplicationService $service */
     private $service;
 
-    public function __construct(RouterProvider $service)
+    public function __construct(ApplicationService $service)
     {
         $this->service = $service;
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        /** @var RouterStatus $data */
-        $data = $request->getAttribute(RouterStatusInterface::class);
+        /** @var RouterStatusInterface $status */
+        $status = $request->getAttribute(Router::HANDLE_STATUS_CODE);
 
-        if (!$data) {
-            $classname = StreamHandler::class;
-            throw new InvalidArgumentException("Attribute request with '{$classname}' not found.");
+        if (!$status) {
+            throw new InvalidArgumentException("RouterStatus attribute request don't yet implemented");
         }
 
-        if ($data->getStatus() !== StatusCode::HTTP_OK_CODE) {
+        if ($status->getStatus() !== StatusCode::HTTP_OK_CODE) {
             return $handler->handle($request);
         }
 

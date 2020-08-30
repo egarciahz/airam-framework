@@ -2,6 +2,7 @@
 
 namespace Airam;
 
+use Airam\Http\Router;
 use Airam\Http\RouterSplInterface;
 use Airam\Template\Render\Engine as TemplateEngine;
 use DI\{Container, ContainerBuilder};
@@ -100,7 +101,7 @@ class Application implements ApplicationInterface
         }
 
         $this->container->set(self::class, $this);
-        $this->container->set("AppMainRouterModule", autowire($this->router_module_class));
+        $this->container->set(Router::HANDLE_MODULE_CODE, autowire($this->router_module_class));
 
         $engine = $this->container->get(TemplateEngine::class);
         $engine->build(self::isDevMode());
