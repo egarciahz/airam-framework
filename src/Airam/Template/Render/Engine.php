@@ -11,9 +11,12 @@ use function Airam\Template\Lib\{
     makeTemplateFileName,
     matchFilesByExtension,
     closureCodeCompiler,
+    cleanFileName
+};
+use function Airam\Utils\{
+    path_join,
     loadResource
 };
-use function Airam\Utils\path_join;
 
 use ErrorException;
 use Closure;
@@ -62,7 +65,7 @@ class Engine
             $helper = require $path;
 
             if ($helper instanceof Closure) {
-                $name = preg_replace("/\..+$/", "", basename($path));
+                $name = cleanFileName($path);
                 $code = closureCodeCompiler($helper, $name);
 
                 array_push($this->helpers, $code);
@@ -109,8 +112,7 @@ class Engine
                 continue;
             }
 
-            $name = preg_replace("/\..+$/", "", basename($path));
-
+            $name = cleanFileName($path);
             $partial = file_get_contents($path);
             $this->partials[] = "\"{$name}\" => \"{$partial}\"";
         }

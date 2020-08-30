@@ -10,17 +10,19 @@ use function DI\get;
 
 // Middlewares
 use Middlewares\Whoops as WhoopsHandler;
+// Whoops
 use Whoops\Run as Whoops;
 use Whoops\Handler\PrettyPageHandler as WhoopsPrettyPageHandler;
-
 
 // Application
 use Airam\Http\Route;
 use Airam\Http\Router;
 use Airam\Http\Middleware\RouterHandler;
 use Airam\Http\Middleware\ErrorHandler as HttpErrorHandler;
+use Airam\Http\Middleware\StatusHandler;
 use Airam\Http\Middleware\StreamHandler;
-use Airam\Http\Service\RouterProvider;
+use Airam\Http\Service\RouteService;
+use Airam\Service\ApplicationService;
 use Airam\Template\Middleware\TemplateHandler;
 use Airam\Template\Render\Engine as TemplateEngine;
 // FastRoute
@@ -45,29 +47,26 @@ use Throwable;
  */
 return [
     Application::class => autowire(),
+    ApplicationService::class => autowire(),
     // --
     Route::class => create(),
     Router::class => autowire(),
-    RouterProvider::class => autowire(),
+    RouteService::class => autowire(),
     StreamHandler::class => autowire(),
-    RouterHandler::class => create()->constructor(get(Router::class), get(Application::class)),
+    StatusHandler::class => autowire(),
+    RouterHandler::class => create()->constructor(get(Router::class), get(ApplicationService::class)),
     RouteParser::class => create(RouteStdParser::class),
     DataGenerator::class => create(RouterDataGenerator::class),
     // --
-    TemplateHandler::class => factory(function (ContainerInterface $c) {
-        $instance = new TemplateHandler($c->get(Application::class), function () {
-            return new Response();
-        });
-
-        return $instance;
+    TemplateHandler::class => create()->constructor(get(ApplicationService::class), function () {
+        return new Response;
     }),
     TemplateEngine::class => create()->constructor(get("template.config")),
     // --
     EmitterStack::class => factory(function (ContainerInterface $c) {
         $stack = new EmitterStack();
         $stack->push(new SapiEmitter());
-        // emitters 
-        // ...
+
         return $stack;
     }),
     WhoopsHandler::class => factory(function (ContainerInterface $c) {
@@ -105,11 +104,11 @@ return [
     'ServerRequestGenerator' => factory(function () {
         return [ServerRequestFactory::class, 'fromGlobals'];
     }),
-    'ServerErrorGenerator' => factory(function () {
+    'ServerErrorGenerator' => factory(function (ContainerInterface $c) {
         return function (Throwable $error) {
             $isDevMode = Application::isDevMode();
             $generator = new ErrorResponseGenerator($isDevMode);
-            return $generator($error, new ServerRequest(), new Response());
+            return $generator($error, ServerRequestFactory::fromGlobals(), new Response());
         };
     }),
     RequestHandlerRunner::class => factory(function (ContainerInterface $container) {

@@ -2,8 +2,8 @@
 
 namespace Airam\Http\Middleware;
 
-use Airam\Http\Message\RouterStatus;
-use Airam\Http\Message\RouterStatusInterface;
+use Airam\Http\Router;
+use Airam\Http\Lib\RouterStatusInterface;
 use HttpStatusCodes\HttpStatusCodes as StatusCode;
 
 use Psr\Http\Message\ServerRequestInterface;
@@ -19,11 +19,14 @@ class ErrorHandler implements MiddlewareInterface
      * @var callable $responseFactory 
      */
     private $responseFactory;
-    private $isDevelopmentMode;
+    /**
+     * @var bool $isDevMode
+     */
+    private $isDevMode;
 
-    public function __construct(callable $responseFactory, bool $isDevelopmentMode = false)
+    public function __construct(callable $responseFactory, bool $isDevMode = true)
     {
-        $this->isDevelopmentMode = $isDevelopmentMode;
+        $this->isDevMode = $isDevMode;
         $this->responseFactory = function () use ($responseFactory): ResponseInterface {
             return $responseFactory();
         };
@@ -34,24 +37,24 @@ class ErrorHandler implements MiddlewareInterface
         /** @var ResponseInterface $response */
         $response = ($this->responseFactory)();
 
-        /** @var RouterStatus|null $router */
-        $router = $request->getAttribute(RouterStatusInterface::class);
-        if (!$router) {
-            $classname = RouterHandler::class;
-            throw new InvalidArgumentException("Attribute request with {$classname} not found.");
+        /** @var RouterStatusInterface $status */
+        $status = $request->getAttribute(Router::HANDLE_STATUS_CODE);
+        if(!$status){
+            throw new InvalidArgumentException("RouterStatus attribute request don't yet implemented");
         }
 
-        $response = $response->withStatus($router->getStatus());
-        if (StatusCode::HTTP_METHOD_NOT_ALLOWED_CODE === $router->getStatus()) {
-            $response = $response->withHeader("Allow", join(",", $router->getParams()));
+        $code = $status->getStatus();
+        $response = $response->withStatus($code);
+        if (StatusCode::HTTP_METHOD_NOT_ALLOWED_CODE === $code) {
+            $response = $response->withHeader("Allow", join(",", $status->getParams()));
         }
 
         $response->getBody()->write(sprintf(
             '<h3>Error %d</h3> <p> [<b>%s</b> <i>%s</i>] <br> %s </p>',
-            $router->getStatus(),
+            $status->getStatus(),
             $request->getMethod(),
-            (string) $request->getUri(),
-            StatusCode::getMessage($router->getStatus())
+            (string) $status->getUri(),
+            StatusCode::getMessage($code)
         ));
 
         return $response;
