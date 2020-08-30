@@ -63,3 +63,18 @@ function class_use($target, $trait): bool
 
     return  array_search($trait, $traits) !== false;
 }
+
+
+/**
+ * require safe php file wrapper
+ * @param string $path absolute file path
+ */
+function loadResource(string $path)
+{
+    if (!file_exists($path)) {
+        return null;
+    }
+
+    $result = require $path;
+    return $result;
+}
