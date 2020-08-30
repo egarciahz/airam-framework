@@ -9,7 +9,7 @@ use RecursiveIteratorIterator;
 use RegexIterator;
 use Closure;
 
-use function Airam\Utils\{
+use function Airam\Commons\{
     path_join,
     class_use,
     closureFactory

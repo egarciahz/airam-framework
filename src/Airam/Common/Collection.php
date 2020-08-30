@@ -1,6 +1,6 @@
 <?php
 
-namespace Airam\Utils;
+namespace Airam\Commons;
 
 use IteratorAggregate;
 use ArrayIterator;
