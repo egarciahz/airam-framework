@@ -84,56 +84,54 @@ class Engine
         throw new ErrorException("Can not generate $filename file under {$dir}!!\n");
     }
 
+    /**
+     * @param string[] $paths array of available file paths
+     * @param string $buildDir path folder for make file
+     */
     protected function compileHelpers(array $paths, string $buildDir)
     {
+        $helpers = [];
         foreach ($paths as $path) {
             if (!file_exists($path)) {
+                error_log("Can not find helper file [{$path}]!\n.");
                 continue;
             }
 
-            $helper = require $path;
+            if (!is_readable($path)) {
+                error_log("Can not read helper file [{$path}]!\n.");
+                continue;
+            }
+
+            $helper = loadResource($path);
 
             if ($helper instanceof Closure) {
                 $name = cleanFileName($path);
                 $code = closureCodeCompiler($helper, $name);
 
-                array_push($this->helpers, $code);
+                array_push($helpers, $code);
             }
 
             if (gettype($helper) === "array") {
                 foreach ($helper as $name => $predicate) {
                     if ($predicate instanceof Closure) {
                         $code = closureCodeCompiler($predicate, $name);
-                        array_push($this->helpers, $code);
+                        array_push($helpers, $code);
                         continue;
                     }
 
-                    array_push($this->helpers, "\"{$name}\" => " . var_export($predicate, true));
+                    array_push($helpers, "\"{$name}\" => " . var_export($predicate, true));
                 }
             }
         }
 
-        $code = join(PHP_EOL, [
-            "<?php",
-            "use Airam\Application;",
-            "use function Airam\Commons\{path_join,randomId,class_use};",
-            "use function Airam\Template\Lib\{is_layout,is_template};",
-            "return [", join("," . PHP_EOL, $this->helpers), "];"
-        ]);
-
-        if (file_exists($buildDir)) {
-            $file = path_join(DIRECTORY_SEPARATOR, $buildDir, "helper_bundle.php");
-            $size = file_put_contents($file, $code);
-            if ($size === 0) {
-                throw new ErrorException("Could not create file during compilation of helpers");
-            }
+        $code = "return [" . join("," . PHP_EOL, $helpers) . "]";
+        return $this->bundle($code, $buildDir, "helpers.bundle.php");
+    }
 
     /**
      * @param string[] $paths array of available file paths
      * @param string $buildDir path folder for make file
      */
-    }
-
     protected function compilePartials(array $paths, string $buildDir)
     {
         $partials = [];
