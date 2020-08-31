@@ -4,7 +4,7 @@ namespace Airam\Template\Render;
 
 use Airam\Template\LayoutInterface;
 use Airam\Template\TemplateInterface;
-use LightnCandy\LightnCandy;
+use LightnCandy\{LightnCandy, SafeString};
 
 use function Airam\Template\Lib\{
     is_layout,
@@ -23,12 +23,10 @@ use Closure;
 
 class Engine
 {
-    private $context = [];
+    private static $context = [];
     private $config;
 
-    private $partials = [];
-    private $helpers = [];
-
+    private static $partials = [];
     private $root;
 
     public function __construct(array $config)
@@ -53,8 +51,36 @@ class Engine
     }
 
     /**
-     * @param string[] $paths
+     * @param string $code php code as string
+     * @param string $dir path folder for make file
+     * @param string $filename
+     * 
+     * @return string absolute file path
      */
+    private function bundle(string $code, string $dir, string $filename): string
+    {
+        $code = join(PHP_EOL, [
+            "<?php",
+            "namespace Airam\Cache;",
+            "use Airam\Application;",
+            "use function Airam\Commons\{path_join,randomId,class_use};",
+            "use function Airam\Template\Lib\{is_layout,is_template};",
+            $code,
+            "?>"
+        ]);
+
+        if (file_exists($dir)) {
+            $file = path_join(DIRECTORY_SEPARATOR, $dir, $filename);
+            if (!file_put_contents($file, $code)) {
+                throw new ErrorException("Could don't create [{$filename}] file when compiling.");
+            }
+
+            return $file;
+        }
+
+        throw new ErrorException("Can not generate $filename file under {$dir}!!\n");
+    }
+
     protected function compileHelpers(array $paths, string $buildDir)
     {
         foreach ($paths as $path) {
