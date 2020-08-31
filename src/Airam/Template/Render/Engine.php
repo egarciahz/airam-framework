@@ -35,18 +35,21 @@ class Engine
         $this->root = getenv("ROOT_DIR");
     }
 
-    public function loadResources(bool $isDevMode = true)
+    /**
+     * load helpers and partial bundlers
+     * @param bool $isDevMode
+     */
+    private function loadResources(bool $isDevMode = true)
     {
-        $helpers = path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["helpers"]["buildDir"], "helpers_bundle.php");
-        $partials = path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["partials"]["buildDir"], "partials_bundle.php");
+        $helpers = path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["helpers"]["buildDir"], "helpers.bundle.php");
+        $partials = path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["partials"]["buildDir"], "partials.bundle.php");
 
         $helpers = loadResource($helpers);
-        $partials = loadResource($partials);
+        self::$partials = loadResource($partials);
 
         /** prepare context */
         return $this->prepare($isDevMode, [
-            "helpers" =>  $helpers,
-            "partials" => $partials
+            "helpers" =>  $helpers
         ]);
     }
 
@@ -125,42 +128,45 @@ class Engine
                 throw new ErrorException("Could not create file during compilation of helpers");
             }
 
-            return $file;
-        }
-
-        return null;
+    /**
+     * @param string[] $paths array of available file paths
+     * @param string $buildDir path folder for make file
+     */
     }
 
     protected function compilePartials(array $paths, string $buildDir)
     {
+        $partials = [];
         foreach ($paths as $path) {
             if (!file_exists($path)) {
+                error_log("Can not find partial file [{$path}]!\n.");
+                continue;
+            }
+
+            if (!is_readable($path)) {
+                error_log("Could not read partial file [{$path}]!\n.");
                 continue;
             }
 
             $name = cleanFileName($path);
-            $partial = file_get_contents($path);
-            $this->partials[] = "\"{$name}\" => \"{$partial}\"";
+            $partial = new SafeString(file_get_contents($path));
+
+            $code = LightnCandy::compilePartial($partial, [
+                "prepartial" => function ($context, $template, $name) {
+                    return "<!-- partial start: $name -->$template<!-- partial end: $name -->";
+                }
+            ]);
+            array_push($partials, "\"{$name}\" => {$code}");
         }
 
-        $code = join(PHP_EOL, [
-            "<?php",
-            "return [", join("," . PHP_EOL, $this->partials), "];"
-        ]);
-
-        if (file_exists($buildDir)) {
-            $file = path_join(DIRECTORY_SEPARATOR, $buildDir, "partials_bundle.php");
-            $size = file_put_contents($file, $code);
-            if ($size === 0) {
-                throw new ErrorException("Could not create file during compilation of partials");
-            }
-
-            return $file;
-        }
-
-        return null;
+        $code = "return [" . join("," . PHP_EOL, $partials) . "]";
+        return $this->bundle($code, $buildDir, "partials.bundle.php");
     }
 
+    /**
+     * @param string $path template file path
+     * @param string $buildDir path folder for make file
+     */
     protected function compileTemplate(string $path, string $buildDir)
     {
         if (!file_exists($path)) {
@@ -168,7 +174,7 @@ class Engine
         }
 
         $template = file_get_contents($path);
-        $code = LightnCandy::compile($template, $this->context);
+        $code = LightnCandy::compile($template, self::$context);
         $code = join(PHP_EOL, [
             "<?php ",
             $code
