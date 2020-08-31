@@ -8,7 +8,7 @@ use ReflectionClass;
 
 function randomId(int $length = 16): string
 {
-    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-/@#';
     $charactersLength = strlen($characters);
     $String = '';
 
@@ -47,7 +47,7 @@ function closureFactory(Closure $closure)
 
     $code = preg_replace('/^(a|[\@\d]).*(\;s\:+[0-9])*\:"function./', "function", $code);
     $code = preg_replace('/(\"\;s\:+[0-9]*\:"scope.*)$/', "", $code);
-    
+
     return $code;
 }
 
@@ -59,6 +59,7 @@ function class_use($target, $trait): bool
     } else {
         $ref = new ReflectionClass($target);
         $traits = $ref->getTraitNames();
+        $ref = null;
     }
 
     return  array_search($trait, $traits) !== false;
@@ -75,6 +76,9 @@ function loadResource(string $path)
         return null;
     }
 
-    $result = require $path;
-    return $result;
+    if (!is_readable($path)) {
+        return null;
+    }
+
+    return require $path;
 }

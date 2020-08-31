@@ -55,9 +55,9 @@ class Application implements ApplicationInterface
         $root = getenv('ROOT_DIR');
         if ($this->builder instanceof ContainerBuilder) {
 
-            $this->builder->enableCompilation($root . '/.cache/build');
-            $this->builder->enableDefinitionCache("App\Cache");
-            $this->builder->writeProxiesToFile(true, $root . '/.cache/tmp');
+            $this->builder->enableCompilation("{$root}/.cache/build");
+            $this->builder->enableDefinitionCache("Airam\Cache");
+            $this->builder->writeProxiesToFile(true, "tmp/proxies");
             $this->builder->ignorePhpDocErrors(true);
         }
     }
@@ -104,7 +104,7 @@ class Application implements ApplicationInterface
         $this->container->set(Router::HANDLE_MODULE_CODE, autowire($this->router_module_class));
 
         $engine = $this->container->get(TemplateEngine::class);
-        $engine->build(self::isDevMode());
+        $engine->build($this->isProdMode());
 
         /** @var RequestHandlerRunner $runner */
         $runner = $this->container->get(RequestHandlerRunner::class);
