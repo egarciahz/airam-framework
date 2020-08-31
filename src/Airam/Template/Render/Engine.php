@@ -194,8 +194,10 @@ class Engine
     /**
      * @param LayoutInterface $layout
      * @param TemplateInterface $templates
+     * 
+     * @return string html code
      */
-    public function layout($layout, ...$templates)
+    public function layout($layout, ...$templates): string
     {
         if (!is_layout($layout)) {
             return null;
@@ -210,6 +212,9 @@ class Engine
 
     /**
      * @param TemplateInterface $object
+     * @param bool $runtime enable runtime rendering
+     * 
+     * @return string html code
      */
     public function render($object, bool $isDevMode = true)
     {
