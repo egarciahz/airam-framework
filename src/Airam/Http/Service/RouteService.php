@@ -22,27 +22,36 @@ class RouteService
      */
     private $status;
 
-    public function getParams()
+    /**
+     * @return array|null
+     */
+    public function getParams(): ?array
     {
         return $this->status->getParams();
     }
 
-    public function getQuery()
+    /**
+     * @return array|null
+     */
+    public function getQuery(): ?array
     {
         return $this->request->getQueryParams();
     }
 
+    /**
+     * @return null|array|object
+     */
     public function getData()
     {
         $this->request->getParsedBody();
     }
 
-    public function getFiles()
+    public function getFiles(): array
     {
-        $this->request->getUploadedFiles();
+        return $this->request->getUploadedFiles();
     }
 
-    public function getCookies()
+    public function getCookies(): array
     {
         return $this->request->getCookieParams();
     }

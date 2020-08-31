@@ -17,33 +17,46 @@ class Match
         $this->params = $status->getParams();
     }
 
-    public function params()
+    public function params(): array
     {
         return $this->params;
     }
 
-    public function path()
+    public function path(): string
     {
         return $this->uri->getPath();
     }
 
-    public function fragment()
+    public function fragment(): ?string
     {
         return $this->uri->getFragment();
     }
 
-    public function query()
+    public function query(): array
     {
         return $this->uri->getQueryAsArray();
     }
 
-    public function method()
+    public function method(): string
     {
         return $this->request->getMethod();
     }
 
+    public function protocol(): Protocol
+    {
+        return new Protocol($this->request);
+    }
+
+    /**
+     * @return array<string[]>
+     */
     public function headers()
     {
         return $this->request->getHeaders();
+    }
+
+    public function __toString()
+    {
+        return $this->request->getMethod() . " " . $this->uri->getPath();
     }
 }
