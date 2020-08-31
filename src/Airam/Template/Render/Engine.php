@@ -216,16 +216,15 @@ class Engine
      * 
      * @return string html code
      */
-    public function render($object, bool $isDevMode = true)
+    public function render($object, bool $runtime = false)
     {
 
-        $data = $object->__toRender($isDevMode);
+        $data = $object->__toRender($runtime);
 
-        if ($isDevMode) {
+        if ($runtime) {
 
-            $context = $this->context;
             $template = file_get_contents($data->file);
-            $compiled = LightnCandy::compile($template, $context);
+            $compiled = LightnCandy::compile($template, self::$context);
             $renderer = LightnCandy::prepare($compiled);
 
             $data->properties["Template"]["file"] = $data->file;
@@ -243,8 +242,12 @@ class Engine
             $renderer = require $file;
         }
 
-        $toRender = array_merge_recursive($data->properties, $data->methods);
-        return $renderer($toRender);
+        /**
+         * rendering strategy depending of LightnCandy::FLAG_ERROR_SKIPPARTIAL | LightnCandy::FLAG_RUNTIMEPARTIAL flags
+         */
+        return $renderer(array_merge_recursive($data->properties, $data->methods), [
+            "partials" => self::$partials
+        ]);
     }
 
     public function prepare(bool $isDevMode = true, array $overrides = [])
@@ -256,7 +259,8 @@ class Engine
                 : LightnCandy::FLAG_ERROR_LOG) | // options for error catching and debug
                 ($isDevMode ? LightnCandy::FLAG_STANDALONEPHP : LightnCandy::FLAG_BESTPERFORMANCE) |
                 LightnCandy::FLAG_HANDLEBARSJS_FULL |
-                LightnCandy::FLAG_ADVARNAME |
+                LightnCandy::FLAG_ERROR_SKIPPARTIAL |
+                LightnCandy::FLAG_RUNTIMEPARTIAL |
                 LightnCandy::FLAG_NAMEDARG |
                 LightnCandy::FLAG_PARENT,
             "prepartial" => function ($context, $template, $name) {
@@ -264,8 +268,8 @@ class Engine
             }
         ];
 
-        $this->context = array_merge($context, $overrides);
-
+        self::$context = array_merge($context, $overrides);
+        return self::$context;
         return $this->context;
     }
 
