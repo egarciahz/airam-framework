@@ -250,27 +250,20 @@ class Engine
         ]);
     }
 
-    public function prepare(bool $isDevMode = true, array $overrides = [])
+    public function prepare(bool $enableProdMode = false, array $overrides = [])
     {
-
         $context = [
-            "flags" => ($isDevMode ?
-                (LightnCandy::FLAG_ERROR_EXCEPTION | LightnCandy::FLAG_RENDER_DEBUG)
-                : LightnCandy::FLAG_ERROR_LOG) | // options for error catching and debug
-                ($isDevMode ? LightnCandy::FLAG_STANDALONEPHP : LightnCandy::FLAG_BESTPERFORMANCE) |
+            "flags" => ($enableProdMode ? LightnCandy::FLAG_ERROR_LOG : LightnCandy::FLAG_ERROR_EXCEPTION) | // options for error catching and debug
                 LightnCandy::FLAG_HANDLEBARSJS_FULL |
                 LightnCandy::FLAG_ERROR_SKIPPARTIAL |
                 LightnCandy::FLAG_RUNTIMEPARTIAL |
+                LightnCandy::FLAG_BESTPERFORMANCE |
                 LightnCandy::FLAG_NAMEDARG |
                 LightnCandy::FLAG_PARENT,
-            "prepartial" => function ($context, $template, $name) {
-                return "<!-- partial start: $name -->$template<!-- partial end: $name -->";
-            }
         ];
 
         self::$context = array_merge($context, $overrides);
         return self::$context;
-        return $this->context;
     }
 
     public function build(bool $isDevMode = true)
