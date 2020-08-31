@@ -266,9 +266,8 @@ class Engine
         return self::$context;
     }
 
-    public function build(bool $isDevMode = true)
+    public function build(bool $enableProdMode = false)
     {
-
 
         $this->compileHelpers(
             matchFilesByExtension(
@@ -288,13 +287,9 @@ class Engine
             path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["partials"]["buildDir"])
         );
 
-        $this->loadResources($isDevMode);
+        $this->loadResources($enableProdMode);
 
-        if (!$isDevMode) {
-            throw new \Error("Production mode not yet implemented");
-            exit;
-            # for Production
-            /*
+        if (!$enableProdMode) {
             $templates = matchFilesByExtension(
                 path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["templates"]["dir"]),
                 $this->config["templates"]["fileExtension"],
@@ -307,7 +302,6 @@ class Engine
                     path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["templates"]["buildDir"])
                 );
             }
-        */
         }
     }
 }
