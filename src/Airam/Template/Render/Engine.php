@@ -271,8 +271,8 @@ class Engine
 
         $this->compileHelpers(
             matchFilesByExtension(
-                path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["helpers"]["dir"]),
-                $this->config["helpers"]["fileExtension"],
+                path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["helpers"]["basename"]),
+                $this->config["helpers"]["mapFiles"],
                 $this->config["helpers"]["excludeDir"],
             ),
             path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["helpers"]["buildDir"])
@@ -280,8 +280,8 @@ class Engine
 
         $this->compilePartials(
             matchFilesByExtension(
-                path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["partials"]["dir"]),
-                $this->config["partials"]["fileExtension"],
+                path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["partials"]["basename"]),
+                $this->config["partials"]["mapFiles"],
                 $this->config["partials"]["excludeDir"],
             ),
             path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["partials"]["buildDir"])
@@ -291,8 +291,8 @@ class Engine
 
         if (!$enableProdMode) {
             $templates = matchFilesByExtension(
-                path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["templates"]["dir"]),
-                $this->config["templates"]["fileExtension"],
+                path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["templates"]["basename"]),
+                $this->config["templates"]["mapFiles"],
                 $this->config["templates"]["excludeDir"]
             );
 

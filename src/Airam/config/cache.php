@@ -15,34 +15,32 @@ return [
         ]
     ],
 
-    "app.config" => [
-        "definitionCache" => "Airam\Cache",
-        "buildDir" => "build",
-        "proxyDir" => "temp"
-    ],
-
     "router.config" => [
-        "cacheFile" => "build/router.php"
+        "buildDir" => "build",
+        "filename" => "{name}.php"
     ],
 
     "template.config" => [
         "helpers" => [
-            "fileExtension" => [".helper.php"],
+            "mapFiles" => [".helper.php"],
             "buildDir" => "render/helpers",
-            "dir" =>  "app/Client/helpers",
-            "excludeDir" => ["example","builkd"],
+            "excludeDir" => ["lib"],
+            "basename" => "app/Client/helpers",
+            "filename" => "helpers.bundle.php"
         ],
         "templates" => [
-            "fileExtension" => [".template.html"],
+            "mapFiles" => [".template.html"],
             "buildDir" => "render/templates",
-            "dir" => "app/Client",
-            "excludeDir" => ["helper", "helpers", "partial", "partials"]
+            "excludeDir" => ["helper", "helpers", "partial", "partials", "lib"],
+            "basename" => "app/Client",
+            "filename" => "{name}.php"
         ],
         "partials" => [
-            "fileExtension" => [".hbs", ".partial.html", ".partial.hbs"],
+            "mapFiles" => [".hbs", ".partial.html", ".partial.hbs"],
             "buildDir" => "render/partials",
-            "dir" => "app/Client/",
-            "excludeDir" => ["helper", "helpers", "partial", "partials"]
+            "excludeDir" => ["helper", "helpers", "partial", "partials", "lib"],
+            "basename" => "app/Client/",
+            "filename" => "partials.bundle.php"
         ]
     ]
 ];
