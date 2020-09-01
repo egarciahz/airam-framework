@@ -2,6 +2,7 @@
 
 namespace Airam\Template\Middleware;
 
+use Airam\Http\Lib\RouterSplInterface;
 use Airam\Http\Lib\RouterStatusInterface;
 use Airam\Http\Router;
 use Airam\Http\Message\RouterStatus;
@@ -55,17 +56,19 @@ class TemplateHandler implements MiddlewareInterface
             $controller = $this->service->app()->get($routeHandler);
 
             if (is_template($routeHandler)) {
-                /** @var Router $router */
-                $router = $this->service->app()->get(Router::class);
 
                 /** @var TemplateEngine $renderer*/
                 $renderer = $this->service->app()->get(TemplateEngine::class);
+                $router = $this->service->app()->get(Router::HANDLE_MODULE_CODE);
+                
+                if ($layout = $router->getLayout()) {
+                    /** @var LayoutInterface|null $layout */
+                    $layout = $this->service->app()->get($layout);
+                    $html  = $renderer->layout($layout, $controller);
+                } else {
+                    $html = $renderer->render($controller);
+                }
 
-                $layout = $router->getLayout();
-                /** @var LayoutInterface|null $layout */
-                $layout = $this->service->app()->get($layout);
-
-                $html = $layout ? $renderer->layout($layout, $controller) : $renderer->render($controller);
                 $result = new HtmlResponse($html);
             } else {
 
