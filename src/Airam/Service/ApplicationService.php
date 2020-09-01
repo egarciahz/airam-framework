@@ -3,7 +3,6 @@
 namespace Airam\Service;
 
 use Airam\Application;
-use Airam\Http\Router;
 use Airam\RequireException;
 use Laminas\Stratigility\MiddlewarePipe;
 use Psr\Http\Message\ServerRequestInterface;
@@ -17,24 +16,17 @@ use Exception;
 class ApplicationService
 {
     private $app;
-    private $router;
     private $stream;
 
-    public function __construct(Application $app, Router $router)
+    public function __construct(Application $app)
     {
         $this->app = $app;
-        $this->router = $router;
         $this->stream = new MiddlewarePipe;
     }
 
     public function app()
     {
         return $this->app;
-    }
-
-    public function router(): Router
-    {
-        return $this->router;
     }
 
     public function register(string $path)
@@ -48,11 +40,11 @@ class ApplicationService
  * @file {$path}
  */
             ", $file);
-            $file = str_replace("?>", "/** EOL **/", $file);
+            $file = str_replace("?>", "/** EOF **/", $file);
             try {
                 eval($file);
             } catch (Exception $error) {
-                throw new RequireException("A ocurrido un error mientras se reguistraba una ruta de archivo.", $path, $error);
+                throw new RequireException("unexpected error ocurred while eval file", $path, $error);
             }
         }
     }
