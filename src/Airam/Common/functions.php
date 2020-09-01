@@ -69,6 +69,8 @@ function class_use($target, $trait): bool
 /**
  * require safe php file wrapper
  * @param string $path absolute file path
+ * 
+ * @return mixed|null|false null if the file or directory specified by filename not exist; false for not readable file, mixed otherwise
  */
 function loadResource(string $path)
 {
@@ -77,7 +79,7 @@ function loadResource(string $path)
     }
 
     if (!is_readable($path)) {
-        return null;
+        return false;
     }
 
     return require $path;
