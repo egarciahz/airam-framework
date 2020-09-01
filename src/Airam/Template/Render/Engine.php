@@ -23,6 +23,8 @@ use Closure;
 
 class Engine
 {
+    private $isDevMode = true;
+
     private static $context = [];
     private $config;
 
@@ -39,7 +41,7 @@ class Engine
      * load helpers and partial bundlers
      * @param bool $isDevMode
      */
-    private function loadResources(bool $isDevMode = true)
+    private function loadResources()
     {
         $helpers = path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["helpers"]["buildDir"], "helpers.bundle.php");
         $partials = path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["partials"]["buildDir"], "partials.bundle.php");
@@ -48,7 +50,7 @@ class Engine
         self::$partials = loadResource($partials);
 
         /** prepare context */
-        return $this->prepare($isDevMode, [
+        return $this->prepare([
             "helpers" =>  $helpers
         ]);
     }
@@ -216,12 +218,12 @@ class Engine
      * 
      * @return string html code
      */
-    public function render($object, bool $runtime = false)
+    public function render($object)
     {
 
-        $data = $object->__toRender($runtime);
+        $data = $object->__toRender($this->isDevMode);
 
-        if ($runtime) {
+        if ($this->isDevMode) {
 
             $template = file_get_contents($data->file);
             $compiled = LightnCandy::compile($template, self::$context);
@@ -250,10 +252,10 @@ class Engine
         ]);
     }
 
-    public function prepare(bool $enableProdMode = false, array $overrides = [])
+    public function prepare(array $overrides = [])
     {
         $context = [
-            "flags" => ($enableProdMode ? LightnCandy::FLAG_ERROR_LOG : LightnCandy::FLAG_ERROR_EXCEPTION) | // options for error catching and debug
+            "flags" => (!$this->isDevMode ? LightnCandy::FLAG_ERROR_LOG : LightnCandy::FLAG_ERROR_EXCEPTION) | // options for error catching and debug
                 LightnCandy::FLAG_HANDLEBARSJS_FULL |
                 LightnCandy::FLAG_ERROR_SKIPPARTIAL |
                 LightnCandy::FLAG_RUNTIMEPARTIAL |
@@ -266,9 +268,18 @@ class Engine
         return self::$context;
     }
 
-    public function build(bool $enableProdMode = false)
+    public function enableCompilation(string $path)
     {
+        if (!file_exists($path)) {
+            throw new \RuntimeException("Invalid cache folder {$path}");
+        }
 
+        $this->isDevMode = false;
+        return $this;
+    }
+
+    public function build()
+    {
         $this->compileHelpers(
             matchFilesByExtension(
                 path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["helpers"]["basename"]),
@@ -287,9 +298,9 @@ class Engine
             path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["partials"]["buildDir"])
         );
 
-        $this->loadResources($enableProdMode);
+        $this->loadResources();
 
-        if (!$enableProdMode) {
+        if (!$this->isDevMode) {
             $templates = matchFilesByExtension(
                 path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["templates"]["basename"]),
                 $this->config["templates"]["mapFiles"],

@@ -10,19 +10,18 @@ use Dotenv\Dotenv;
 
 use Laminas\HttpHandlerRunner\RequestHandlerRunner;
 use InvalidArgumentException;
+use RuntimeException;
+
 use function DI\autowire;
 
 
 class Application implements ApplicationInterface
 {
 
-    /** @var string $router_module_class RouterModule classpath */
-    private $router_module_class = null;
-
     /** @var bool $production */
     private static $production = false;
 
-    /** @var Container|ContainerBuilder $builder */
+    /** @var ContainerBuilder $builder */
     private $builder;
 
     /** @var Container $container */
@@ -33,6 +32,12 @@ class Application implements ApplicationInterface
 
     /** @var Dotenv $env */
     public $env;
+
+    /** @var Router $router */
+    private $router;
+
+    /** @var TemplateEngine $engine */
+    private $engine;
 
     /**
      * @param ContainerBuilder $builder
@@ -59,6 +64,13 @@ class Application implements ApplicationInterface
             $this->builder->enableDefinitionCache("Airam\Cache");
             $this->builder->writeProxiesToFile(true, "tmp/proxies");
             $this->builder->ignorePhpDocErrors(true);
+            $this->container = $this->builder->build();
+
+            $this->engine = $this->container->get(TemplateEngine::class);
+            $this->engine->enableCompilation("{$root}/.cache/render");
+
+            $this->router = $this->container->get(Router::class);
+            $this->router->enableCompilation("{$root}/.cache/");
         }
     }
 
@@ -69,13 +81,19 @@ class Application implements ApplicationInterface
         }
     }
 
-    public function addRouterModule($module_class): void
+    public function addRouterModule($class_name): void
     {
-        if (false == array_search(RouterSplInterface::class, class_implements($module_class))) {
-            throw new InvalidArgumentException("RouterModule [$module_class] is not an implementation of RouterSplInterface");
+        if (!class_exists($class_name)) {
+            throw new RuntimeException("Don't exist class name {$class_name}.");
         }
 
-        $this->router_module_class = $module_class;
+        if (false == array_search(RouterSplInterface::class, class_implements($class_name))) {
+            throw new RuntimeException("RouterModule [$class_name] is not an implementation of RouterSplInterface");
+        }
+
+        if (!$this->container) {
+            $this->builder->addDefinitions([Router::HANDLE_MODULE_CODE => autowire($class_name)]);
+        }
     }
 
     public function isProdMode(): bool
@@ -93,7 +111,7 @@ class Application implements ApplicationInterface
         return $this->container->has($id);
     }
 
-    public function run()
+    public function run(): void
     {
 
         if (!($this->container instanceof Container)) {
@@ -101,16 +119,21 @@ class Application implements ApplicationInterface
         }
 
         $this->container->set(self::class, $this);
-        $this->container->set(Router::HANDLE_MODULE_CODE, autowire($this->router_module_class));
 
-        $engine = $this->container->get(TemplateEngine::class);
-        $engine->build($this->isProdMode());
+        if (!($this->router instanceof Router)) {
+            $this->router = $this->container->get(Router::class);
+        }
+
+        if (!($this->engine instanceof TemplateEngine)) {
+            $this->engine = $this->container->get(TemplateEngine::class);
+        }
 
         /** @var RequestHandlerRunner $runner */
         $runner = $this->container->get(RequestHandlerRunner::class);
-        $runner->run();
 
-        return $this->container;
+        $this->router->build();
+        $this->engine->build();
+        $runner->run();
     }
 
     public static function isDevMode(): bool
