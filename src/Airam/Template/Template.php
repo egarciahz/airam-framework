@@ -3,7 +3,7 @@
 namespace Airam\Template;
 
 use Airam\Template\Render\Data;
-use function Airam\Utils\path_join;
+use function Airam\Commons\path_join;
 
 use ReflectionClass;
 use ReflectionMethod;

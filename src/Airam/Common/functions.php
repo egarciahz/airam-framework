@@ -1,6 +1,6 @@
 <?php
 
-namespace Airam\Utils;
+namespace Airam\Commons;
 
 use Opis\Closure\SerializableClosure;
 use Closure;
@@ -8,7 +8,7 @@ use ReflectionClass;
 
 function randomId(int $length = 16): string
 {
-    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-/@#';
     $charactersLength = strlen($characters);
     $String = '';
 
@@ -47,7 +47,7 @@ function closureFactory(Closure $closure)
 
     $code = preg_replace('/^(a|[\@\d]).*(\;s\:+[0-9])*\:"function./', "function", $code);
     $code = preg_replace('/(\"\;s\:+[0-9]*\:"scope.*)$/', "", $code);
-    
+
     return $code;
 }
 
@@ -59,7 +59,26 @@ function class_use($target, $trait): bool
     } else {
         $ref = new ReflectionClass($target);
         $traits = $ref->getTraitNames();
+        $ref = null;
     }
 
     return  array_search($trait, $traits) !== false;
+}
+
+
+/**
+ * require safe php file wrapper
+ * @param string $path absolute file path
+ */
+function loadResource(string $path)
+{
+    if (!file_exists($path)) {
+        return null;
+    }
+
+    if (!is_readable($path)) {
+        return null;
+    }
+
+    return require $path;
 }

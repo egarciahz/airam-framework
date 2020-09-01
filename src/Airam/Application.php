@@ -2,7 +2,8 @@
 
 namespace Airam;
 
-use Airam\Http\RouterSplInterface;
+use Airam\Http\Router;
+use Airam\Http\Lib\RouterSplInterface;
 use Airam\Template\Render\Engine as TemplateEngine;
 use DI\{Container, ContainerBuilder};
 use Dotenv\Dotenv;
@@ -54,9 +55,9 @@ class Application implements ApplicationInterface
         $root = getenv('ROOT_DIR');
         if ($this->builder instanceof ContainerBuilder) {
 
-            $this->builder->enableCompilation($root . '/.cache/build');
-            $this->builder->enableDefinitionCache("App\Cache");
-            $this->builder->writeProxiesToFile(true, $root . '/.cache/tmp');
+            $this->builder->enableCompilation("{$root}/.cache/build");
+            $this->builder->enableDefinitionCache("Airam\Cache");
+            $this->builder->writeProxiesToFile(true, "tmp/proxies");
             $this->builder->ignorePhpDocErrors(true);
         }
     }
@@ -100,10 +101,10 @@ class Application implements ApplicationInterface
         }
 
         $this->container->set(self::class, $this);
-        $this->container->set("AppMainRouterModule", autowire($this->router_module_class));
+        $this->container->set(Router::HANDLE_MODULE_CODE, autowire($this->router_module_class));
 
         $engine = $this->container->get(TemplateEngine::class);
-        $engine->build(self::isDevMode());
+        $engine->build($this->isProdMode());
 
         /** @var RequestHandlerRunner $runner */
         $runner = $this->container->get(RequestHandlerRunner::class);

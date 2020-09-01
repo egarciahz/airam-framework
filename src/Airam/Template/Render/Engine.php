@@ -4,28 +4,29 @@ namespace Airam\Template\Render;
 
 use Airam\Template\LayoutInterface;
 use Airam\Template\TemplateInterface;
-use LightnCandy\LightnCandy;
+use LightnCandy\{LightnCandy, SafeString};
 
 use function Airam\Template\Lib\{
     is_layout,
     makeTemplateFileName,
     matchFilesByExtension,
     closureCodeCompiler,
+    cleanFileName
+};
+use function Airam\Commons\{
+    path_join,
     loadResource
 };
-use function Airam\Utils\path_join;
 
 use ErrorException;
 use Closure;
 
 class Engine
 {
-    private $context = [];
+    private static $context = [];
     private $config;
 
-    private $partials = [];
-    private $helpers = [];
-
+    private static $partials = [];
     private $root;
 
     public function __construct(array $config)
@@ -34,105 +35,136 @@ class Engine
         $this->root = getenv("ROOT_DIR");
     }
 
-    public function loadResources(bool $isDevMode = true)
+    /**
+     * load helpers and partial bundlers
+     * @param bool $isDevMode
+     */
+    private function loadResources(bool $isDevMode = true)
     {
-        $helpers = path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["helpers"]["buildDir"], "helpers_bundle.php");
-        $partials = path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["partials"]["buildDir"], "partials_bundle.php");
+        $helpers = path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["helpers"]["buildDir"], "helpers.bundle.php");
+        $partials = path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["partials"]["buildDir"], "partials.bundle.php");
 
         $helpers = loadResource($helpers);
-        $partials = loadResource($partials);
+        self::$partials = loadResource($partials);
 
         /** prepare context */
         return $this->prepare($isDevMode, [
-            "helpers" =>  $helpers,
-            "partials" => $partials
+            "helpers" =>  $helpers
         ]);
     }
 
     /**
-     * @param string[] $paths
+     * @param string $code php code as string
+     * @param string $dir path folder for make file
+     * @param string $filename
+     * 
+     * @return string absolute file path
+     */
+    private function bundle(string $code, string $dir, string $filename): string
+    {
+        $code = join(PHP_EOL, [
+            "<?php",
+            "namespace Airam\Cache;",
+            "use Airam\Application;",
+            "use function Airam\Commons\{path_join,randomId,class_use};",
+            "use function Airam\Template\Lib\{is_layout,is_template};",
+            $code,
+            "?>"
+        ]);
+
+        if (file_exists($dir)) {
+            $file = path_join(DIRECTORY_SEPARATOR, $dir, $filename);
+            if (!file_put_contents($file, $code)) {
+                throw new ErrorException("Could don't create [{$filename}] file when compiling.");
+            }
+
+            return $file;
+        }
+
+        throw new ErrorException("Can not generate $filename file under {$dir}!!\n");
+    }
+
+    /**
+     * @param string[] $paths array of available file paths
+     * @param string $buildDir path folder for make file
      */
     protected function compileHelpers(array $paths, string $buildDir)
     {
+        $helpers = [];
         foreach ($paths as $path) {
             if (!file_exists($path)) {
+                error_log("Can not find helper file [{$path}]!\n.");
                 continue;
             }
 
-            $helper = require $path;
+            if (!is_readable($path)) {
+                error_log("Can not read helper file [{$path}]!\n.");
+                continue;
+            }
+
+            $helper = loadResource($path);
 
             if ($helper instanceof Closure) {
-                $name = preg_replace("/\..+$/", "", basename($path));
+                $name = cleanFileName($path);
                 $code = closureCodeCompiler($helper, $name);
 
-                array_push($this->helpers, $code);
+                array_push($helpers, $code);
             }
 
             if (gettype($helper) === "array") {
                 foreach ($helper as $name => $predicate) {
                     if ($predicate instanceof Closure) {
                         $code = closureCodeCompiler($predicate, $name);
-                        array_push($this->helpers, $code);
+                        array_push($helpers, $code);
                         continue;
                     }
 
-                    array_push($this->helpers, "\"{$name}\" => " . var_export($predicate, true));
+                    array_push($helpers, "\"{$name}\" => " . var_export($predicate, true));
                 }
             }
         }
 
-        $code = join(PHP_EOL, [
-            "<?php",
-            "use Airam\Application;",
-            "use function Airam\Utils\{path_join,randomId,class_use};",
-            "use function Airam\Template\Lib\{is_layout,is_template};",
-            "return [", join("," . PHP_EOL, $this->helpers), "];"
-        ]);
-
-        if (file_exists($buildDir)) {
-            $file = path_join(DIRECTORY_SEPARATOR, $buildDir, "helper_bundle.php");
-            $size = file_put_contents($file, $code);
-            if ($size === 0) {
-                throw new ErrorException("Could not create file during compilation of helpers");
-            }
-
-            return $file;
-        }
-
-        return null;
+        $code = "return [" . join("," . PHP_EOL, $helpers) . "]";
+        return $this->bundle($code, $buildDir, "helpers.bundle.php");
     }
 
+    /**
+     * @param string[] $paths array of available file paths
+     * @param string $buildDir path folder for make file
+     */
     protected function compilePartials(array $paths, string $buildDir)
     {
+        $partials = [];
         foreach ($paths as $path) {
             if (!file_exists($path)) {
+                error_log("Can not find partial file [{$path}]!\n.");
                 continue;
             }
 
-            $name = preg_replace("/\..+$/", "", basename($path));
-
-            $partial = file_get_contents($path);
-            $this->partials[] = "\"{$name}\" => \"{$partial}\"";
-        }
-
-        $code = join(PHP_EOL, [
-            "<?php",
-            "return [", join("," . PHP_EOL, $this->partials), "];"
-        ]);
-
-        if (file_exists($buildDir)) {
-            $file = path_join(DIRECTORY_SEPARATOR, $buildDir, "partials_bundle.php");
-            $size = file_put_contents($file, $code);
-            if ($size === 0) {
-                throw new ErrorException("Could not create file during compilation of partials");
+            if (!is_readable($path)) {
+                error_log("Could not read partial file [{$path}]!\n.");
+                continue;
             }
 
-            return $file;
+            $name = cleanFileName($path);
+            $partial = new SafeString(file_get_contents($path));
+
+            $code = LightnCandy::compilePartial($partial, [
+                "prepartial" => function ($context, $template, $name) {
+                    return "<!-- partial start: $name -->$template<!-- partial end: $name -->";
+                }
+            ]);
+            array_push($partials, "\"{$name}\" => {$code}");
         }
 
-        return null;
+        $code = "return [" . join("," . PHP_EOL, $partials) . "]";
+        return $this->bundle($code, $buildDir, "partials.bundle.php");
     }
 
+    /**
+     * @param string $path template file path
+     * @param string $buildDir path folder for make file
+     */
     protected function compileTemplate(string $path, string $buildDir)
     {
         if (!file_exists($path)) {
@@ -140,7 +172,7 @@ class Engine
         }
 
         $template = file_get_contents($path);
-        $code = LightnCandy::compile($template, $this->context);
+        $code = LightnCandy::compile($template, self::$context);
         $code = join(PHP_EOL, [
             "<?php ",
             $code
@@ -162,8 +194,10 @@ class Engine
     /**
      * @param LayoutInterface $layout
      * @param TemplateInterface $templates
+     * 
+     * @return string html code
      */
-    public function layout($layout, ...$templates)
+    public function layout($layout, ...$templates): string
     {
         if (!is_layout($layout)) {
             return null;
@@ -178,17 +212,19 @@ class Engine
 
     /**
      * @param TemplateInterface $object
+     * @param bool $runtime enable runtime rendering
+     * 
+     * @return string html code
      */
-    public function render($object, bool $isDevMode = true)
+    public function render($object, bool $runtime = false)
     {
 
-        $data = $object->__toRender($isDevMode);
+        $data = $object->__toRender($runtime);
 
-        if ($isDevMode) {
+        if ($runtime) {
 
-            $context = $this->context;
             $template = file_get_contents($data->file);
-            $compiled = LightnCandy::compile($template, $context);
+            $compiled = LightnCandy::compile($template, self::$context);
             $renderer = LightnCandy::prepare($compiled);
 
             $data->properties["Template"]["file"] = $data->file;
@@ -206,40 +242,37 @@ class Engine
             $renderer = require $file;
         }
 
-        $toRender = array_merge_recursive($data->properties, $data->methods);
-        return $renderer($toRender);
+        /**
+         * rendering strategy depending of LightnCandy::FLAG_ERROR_SKIPPARTIAL | LightnCandy::FLAG_RUNTIMEPARTIAL flags
+         */
+        return $renderer(array_merge_recursive($data->properties, $data->methods), [
+            "partials" => self::$partials
+        ]);
     }
 
-    public function prepare(bool $isDevMode = true, array $overrides = [])
+    public function prepare(bool $enableProdMode = false, array $overrides = [])
     {
-
         $context = [
-            "flags" => ($isDevMode ?
-                (LightnCandy::FLAG_ERROR_EXCEPTION | LightnCandy::FLAG_RENDER_DEBUG)
-                : LightnCandy::FLAG_ERROR_LOG) | // options for error catching and debug
-                ($isDevMode ? LightnCandy::FLAG_STANDALONEPHP : LightnCandy::FLAG_BESTPERFORMANCE) |
+            "flags" => ($enableProdMode ? LightnCandy::FLAG_ERROR_LOG : LightnCandy::FLAG_ERROR_EXCEPTION) | // options for error catching and debug
                 LightnCandy::FLAG_HANDLEBARSJS_FULL |
-                LightnCandy::FLAG_ADVARNAME |
+                LightnCandy::FLAG_ERROR_SKIPPARTIAL |
+                LightnCandy::FLAG_RUNTIMEPARTIAL |
+                LightnCandy::FLAG_BESTPERFORMANCE |
                 LightnCandy::FLAG_NAMEDARG |
                 LightnCandy::FLAG_PARENT,
-            "prepartial" => function ($context, $template, $name) {
-                return "<!-- partial start: $name -->$template<!-- partial end: $name -->";
-            }
         ];
 
-        $this->context = array_merge($context, $overrides);
-
-        return $this->context;
+        self::$context = array_merge($context, $overrides);
+        return self::$context;
     }
 
-    public function build(bool $isDevMode = true)
+    public function build(bool $enableProdMode = false)
     {
-
 
         $this->compileHelpers(
             matchFilesByExtension(
-                path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["helpers"]["dir"]),
-                $this->config["helpers"]["fileExtension"],
+                path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["helpers"]["basename"]),
+                $this->config["helpers"]["mapFiles"],
                 $this->config["helpers"]["excludeDir"],
             ),
             path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["helpers"]["buildDir"])
@@ -247,23 +280,19 @@ class Engine
 
         $this->compilePartials(
             matchFilesByExtension(
-                path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["partials"]["dir"]),
-                $this->config["partials"]["fileExtension"],
+                path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["partials"]["basename"]),
+                $this->config["partials"]["mapFiles"],
                 $this->config["partials"]["excludeDir"],
             ),
             path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["partials"]["buildDir"])
         );
 
-        $this->loadResources($isDevMode);
+        $this->loadResources($enableProdMode);
 
-        if (!$isDevMode) {
-            throw new \Error("Production mode not yet implemented");
-            exit;
-            # for Production
-            /*
+        if (!$enableProdMode) {
             $templates = matchFilesByExtension(
-                path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["templates"]["dir"]),
-                $this->config["templates"]["fileExtension"],
+                path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["templates"]["basename"]),
+                $this->config["templates"]["mapFiles"],
                 $this->config["templates"]["excludeDir"]
             );
 
@@ -273,7 +302,6 @@ class Engine
                     path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["templates"]["buildDir"])
                 );
             }
-        */
         }
     }
 }

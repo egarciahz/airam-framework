@@ -9,7 +9,7 @@ use RecursiveIteratorIterator;
 use RegexIterator;
 use Closure;
 
-use function Airam\Utils\{
+use function Airam\Commons\{
     path_join,
     class_use,
     closureFactory
@@ -72,16 +72,6 @@ function passport()
     return null;
 }
 
-/**
- * eval php file wrapper
- * @param string $path absolute file path
- */
-function loadResource(string $path)
-{
-    if (!file_exists($path)) {
-        return null;
-    }
-
-    $result = require $path;
-    return $result;
+function cleanFileName(string $path){
+    return preg_replace("/\..+$/", "", basename($path));
 }

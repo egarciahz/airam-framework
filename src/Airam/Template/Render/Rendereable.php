@@ -18,13 +18,13 @@ trait Rendereable
     }
 
     /**
-     * @return LayoutInterface|null
+     * @return string|null
      */
     private function getLayoutByName(string $name)
     {
         $layout = isset($this->layout[$name]) ? $this->layout[$name] : null;
         if ($layout && is_layout($layout)) {
-            return  $this->app->get($layout);
+            return $layout;
         }
 
         return $layout;
