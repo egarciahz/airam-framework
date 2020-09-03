@@ -2,7 +2,7 @@
 
 namespace Airam\Http\Lib;
 
-use Airam\Service\ApplicationService;
+use Airam\Commons\ApplicationService;
 
 interface RouterSplInterface
 {

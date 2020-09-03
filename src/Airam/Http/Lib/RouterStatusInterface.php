@@ -13,4 +13,6 @@ interface RouterStatusInterface
     public function getParams(): array;
     public function getStatus(): int;
     public function getUri(): UriInterface;
+    public function getMessage(string $default = null): ?string;
+    public function setMessage(string $message): void;
 }
