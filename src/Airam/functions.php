@@ -28,8 +28,7 @@ function applicationFactory($root_dir): Application
     $dotenv->required('PAGE_TITLE');
 
     /** @var Application $app */
-    $app = new Application(new ContainerBuilder());
-    $app->env =  $dotenv;
+    $app = new Application(new ContainerBuilder(),  $dotenv);
 
     $app->addDefinitions(__DIR__ . '/config/application.php');
     $app->addDefinitions(__DIR__ . '/config/cache.php');
