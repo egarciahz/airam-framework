@@ -81,7 +81,7 @@ class RouterHandler implements MiddlewareInterface
         if (gettype($handler) === "array") {
 
             if (!$this->provider->has($handler[0])) {
-                return [StatusCode::HTTP_INTERNAL_SERVER_ERROR_CODE, null, "Class handler {$handler[0]} could not be found."];
+                return [StatusCode::HTTP_INTERNAL_SERVER_ERROR_CODE, null, "Class handler '{$handler[0]}' could not be found."];
             }
 
             $object = $this->provider->get($handler[0]);
@@ -89,12 +89,12 @@ class RouterHandler implements MiddlewareInterface
                 $method = new ReflectionMethod($object, $handler[1]);
                 $handler = $method->getClosure($object);
             } else {
-                return [StatusCode::HTTP_INTERNAL_SERVER_ERROR_CODE, null, "Handler method {$handler[1]} from class {$handler[0]} not exist."];
+                return [StatusCode::HTTP_INTERNAL_SERVER_ERROR_CODE, null, "Handler method '{$handler[1]}' from class '{$handler[0]}' does not exist."];
             }
         } else if (gettype($handler) === "string") {
 
             if (!$this->provider->has($handler)) {
-                return [StatusCode::HTTP_INTERNAL_SERVER_ERROR_CODE, null, "Class handler {$handler} could not be found."];
+                return [StatusCode::HTTP_INTERNAL_SERVER_ERROR_CODE, null, "Class handler '{$handler}' could not be found."];
             }
 
             $handler = $this->provider->get($handler);
