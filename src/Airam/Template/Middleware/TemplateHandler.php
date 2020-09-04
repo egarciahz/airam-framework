@@ -2,32 +2,30 @@
 
 namespace Airam\Template\Middleware;
 
-use Airam\Http\Lib\RouterSplInterface;
-use Airam\Http\Lib\RouterStatusInterface;
 use Airam\Http\Router;
 use Airam\Http\Message\RouterStatus;
-use Airam\Service\ApplicationService;
 use Airam\Template\LayoutInterface;
-use Airam\Template\TemplateInterface;
 use Airam\Template\Render\Engine as TemplateEngine;
 
 use HttpStatusCodes\HttpStatusCodes as StatusCode;
 use Laminas\Diactoros\Response\HtmlResponse;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 use function Airam\Template\Lib\{is_template};
+use Closure;
 
 class TemplateHandler implements MiddlewareInterface
 {
-    private $service;
+    private $app;
     private $response;
 
-    public function __construct(ApplicationService $service, ResponseInterface $response)
+    public function __construct(ContainerInterface $app, ResponseInterface $response)
     {
-        $this->service = $service;
+        $this->app = $app;
         $this->response = $response;
     }
 
