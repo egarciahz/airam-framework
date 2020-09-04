@@ -5,11 +5,12 @@ namespace Airam;
 use Airam\Http\Router;
 use Airam\Http\Lib\RouterSplInterface;
 use Airam\Template\Render\Engine as TemplateEngine;
+use Airam\Commons\ApplicationInterface;
+
 use DI\{Container, ContainerBuilder};
 use Dotenv\Dotenv;
 
 use Laminas\HttpHandlerRunner\RequestHandlerRunner;
-use InvalidArgumentException;
 use RuntimeException;
 
 use function DI\autowire;
@@ -27,11 +28,8 @@ class Application implements ApplicationInterface
     /** @var Container $container */
     public $container;
 
-    /** @var Application $me*/
-    private static $me;
-
     /** @var Dotenv $env */
-    public $env;
+    private $env;
 
     /** @var Router $router */
     private $router;
@@ -44,9 +42,9 @@ class Application implements ApplicationInterface
      * 
      * @return void
      */
-    public function __construct(ContainerBuilder $builder)
+    public function __construct(ContainerBuilder $builder, Dotenv $env)
     {
-        self::$me = $this;
+        $this->env = $env;
 
         $this->builder = $builder;
         $this->builder->useAnnotations(true);
@@ -60,17 +58,17 @@ class Application implements ApplicationInterface
         $root = getenv('ROOT_DIR');
         if ($this->builder instanceof ContainerBuilder) {
 
-            $this->builder->enableCompilation("{$root}/.cache/build");
-            $this->builder->enableDefinitionCache("Airam\Cache");
-            $this->builder->writeProxiesToFile(true, "tmp/proxies");
-            $this->builder->ignorePhpDocErrors(true);
-            $this->container = $this->builder->build();
+            $this->container = $this->builder->enableCompilation("{$root}/.cache/build")
+                //->enableDefinitionCache("Airam\Cache")
+                ->writeProxiesToFile(true, "{$root}/.cache/tmp/proxies")
+                ->ignorePhpDocErrors(true)
+                ->build();
+
+            $this->router = $this->container->get(Router::class);
+            $this->router->enableCompilation("{$root}/.cache/build");
 
             $this->engine = $this->container->get(TemplateEngine::class);
             $this->engine->enableCompilation("{$root}/.cache/render");
-
-            $this->router = $this->container->get(Router::class);
-            $this->router->enableCompilation("{$root}/.cache/");
         }
     }
 
@@ -101,14 +99,26 @@ class Application implements ApplicationInterface
         return self::$production;
     }
 
-    public function get($id)
+    private function logStartUp()
     {
-        return $this->container->get($id);
+        $log = [
+            "*****************************************",
+            "*",
+            "* Airam its running!!",
+            "*",
+            "* Running on : " . ($_SERVER["SERVER_NAME"] . ":" . $_SERVER["SERVER_PORT"]),
+            "* Production : " . (self::$production ? "Enabled" : "Disabled"),
+            "* Root Folder: " . $_SERVER["DOCUMENT_ROOT"],
+            "*",
+            "*****************************************"
+        ];
+
+        error_log("\n" . join("\n", $log));
     }
 
-    public function has($id)
+    public function getDotenv(): Dotenv
     {
-        return $this->container->has($id);
+        return $this->env;
     }
 
     public function run(): void
@@ -128,9 +138,13 @@ class Application implements ApplicationInterface
             $this->engine = $this->container->get(TemplateEngine::class);
         }
 
+        /** @var RouterSplInterface $module */
+        $module = $this->container->get(Router::HANDLE_MODULE_CODE);
+        $module->register();
+
         /** @var RequestHandlerRunner $runner */
         $runner = $this->container->get(RequestHandlerRunner::class);
-
+        $this->logStartUp();
         $this->router->build();
         $this->engine->build();
         $runner->run();
@@ -139,10 +153,5 @@ class Application implements ApplicationInterface
     public static function isDevMode(): bool
     {
         return  !self::$production;
-    }
-
-    public static function getInstance()
-    {
-        return self::$me;
     }
 }

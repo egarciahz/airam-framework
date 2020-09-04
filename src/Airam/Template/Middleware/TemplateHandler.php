@@ -2,78 +2,84 @@
 
 namespace Airam\Template\Middleware;
 
-use Airam\Http\Lib\RouterSplInterface;
-use Airam\Http\Lib\RouterStatusInterface;
 use Airam\Http\Router;
 use Airam\Http\Message\RouterStatus;
-use Airam\Service\ApplicationService;
 use Airam\Template\LayoutInterface;
-use Airam\Template\TemplateInterface;
 use Airam\Template\Render\Engine as TemplateEngine;
 
 use HttpStatusCodes\HttpStatusCodes as StatusCode;
 use Laminas\Diactoros\Response\HtmlResponse;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 use function Airam\Template\Lib\{is_template};
+use Closure;
 
 class TemplateHandler implements MiddlewareInterface
 {
-    private $service;
+    private $app;
     private $response;
 
-    public function __construct(ApplicationService $service, ResponseInterface $response)
+    public function __construct(ContainerInterface $app, ResponseInterface $response)
     {
-        $this->service = $service;
+        $this->app = $app;
         $this->response = $response;
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        /** @var RouterStatusInterface $status */
+        /** @var RouterStatus $status */
         $status = $request->getAttribute(Router::HANDLE_STATUS_CODE);
         if ($status->getStatus() !== StatusCode::HTTP_OK_CODE) {
             return $handler->handle($request);
         }
 
-        /** @var callable|string|null $routeHandler */
+        /** @var Closure|resource $routeHandler */
         $routeHandler = $status->getHandler();
+        $result = null;
 
         if (!$routeHandler) {
             $router = new RouterStatus(StatusCode::HTTP_EXPECTATION_FAILED_CODE, $status->getUri());
+            $router->setMessage(StatusCode::getMessage(StatusCode::HTTP_EXPECTATION_FAILED_CODE));
+
             $request = $request->withAttribute(Router::HANDLE_STATUS_CODE, $status);
             return $handler->handle($request);
         }
 
-        if (is_callable($routeHandler)) {
+        if ($routeHandler instanceof Closure) {
             $result = call_user_func($routeHandler, $request);
-        } else if (class_exists($routeHandler)) {
+        }
 
-            /** @var TemplateInterface $controller */
-            $controller = $this->service->app()->get($routeHandler);
+        if (is_template($routeHandler) && !$result) {
 
-            if (is_template($routeHandler)) {
+            /** @var TemplateEngine $renderer*/
+            $renderer = $this->app->get(TemplateEngine::class);
+            $router = $this->app->get(Router::HANDLE_MODULE_CODE);
 
-                /** @var TemplateEngine $renderer*/
-                $renderer = $this->service->app()->get(TemplateEngine::class);
-                $router = $this->service->app()->get(Router::HANDLE_MODULE_CODE);
-                
-                if ($layout = $router->getLayout()) {
-                    /** @var LayoutInterface|null $layout */
-                    $layout = $this->service->app()->get($layout);
-                    $html  = $renderer->layout($layout, $controller);
-                } else {
-                    $html = $renderer->render($controller);
-                }
-
-                $result = new HtmlResponse($html);
+            if ($layout = $router->getLayout()) {
+                /** @var LayoutInterface|null $layout */
+                $layout = $this->app->get($layout);
+                $html  = $renderer->layout($layout, $routeHandler);
             } else {
-
-                $result = is_callable($controller) ? $controller($request) : StatusCode::getDescription(StatusCode::HTTP_EXPECTATION_FAILED_CODE);
+                $html = $renderer->render($routeHandler);
             }
+
+            $result = new HtmlResponse($html);
+        }
+
+        if (is_callable($routeHandler) && !$result) {
+            $result = call_user_func($routeHandler, $request);
+        }
+
+        if (!$result) {
+            $router = new RouterStatus(StatusCode::HTTP_EXPECTATION_FAILED_CODE, $status->getUri());
+            $router->setMessage("Un-handled controller class type.");
+
+            $request = $request->withAttribute(Router::HANDLE_STATUS_CODE, $status);
+            return $handler->handle($request);
         }
 
         if ($result instanceof ResponseInterface) {

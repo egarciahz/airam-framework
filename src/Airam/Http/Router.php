@@ -2,9 +2,8 @@
 
 namespace Airam\Http;
 
-use FastRoute\{RouteCollector, Dispatcher};
+use FastRoute\{DataGenerator, RouteCollector, Dispatcher, RouteParser};
 use FastRoute\Dispatcher\GroupCountBased;
-
 use function Airam\Commons\{loadResource, path_join};
 
 class Router extends RouteCollector implements Dispatcher
@@ -16,6 +15,17 @@ class Router extends RouteCollector implements Dispatcher
     private $isDevMode = true;
     private $cache = null;
 
+    private static $instance;
+
+    public function __construct(RouteParser $parser, DataGenerator $generator)
+    {
+        parent::__construct($parser, $generator);
+        static::$instance = $this;
+    }
+
+    public static function getInstance(){
+        return static::$instance;
+    }
 
     public function getData()
     {
@@ -52,6 +62,7 @@ class Router extends RouteCollector implements Dispatcher
 
         $this->filename = path_join(DIRECTORY_SEPARATOR, $path, "router_cache.php");
         $this->isDevMode = false;
+
         return $this;
     }
 
@@ -64,9 +75,9 @@ class Router extends RouteCollector implements Dispatcher
 
     public function build()
     {
-        $data = parent::getData();
-        if (!$this->isDevMode && !$this->filename) {
-            file_put_contents($this->filename, '<?php return ' . var_export($data, true) . ';');
+        if (!$this->isDevMode && !file_exists($this->filename)) {
+            $data = parent::getData();
+            file_put_contents($this->filename, "<?php return " . var_export($data, true) . ';', LOCK_EX);
         }
     }
 }
