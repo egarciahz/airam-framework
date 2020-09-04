@@ -12,50 +12,57 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 use InvalidArgumentException;
+use Laminas\Diactoros\Response\HtmlResponse;
+use Laminas\Diactoros\Response\JsonResponse;
 
 class ErrorHandler implements MiddlewareInterface
 {
     /** 
-     * @var callable $responseFactory 
+     * @var callable $getEnviromentMode 
      */
-    private $responseFactory;
-    /**
-     * @var bool $isDevMode
-     */
-    private $isDevMode;
+    private $getEnviromentMode;
 
-    public function __construct(callable $responseFactory, bool $isDevMode = true)
+    public function __construct(callable $enviroment)
     {
-        $this->isDevMode = $isDevMode;
-        $this->responseFactory = function () use ($responseFactory): ResponseInterface {
-            return $responseFactory();
+        $this->getEnviromentMode = function () use ($enviroment): bool {
+            return $enviroment();
         };
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        /** @var ResponseInterface $response */
-        $response = ($this->responseFactory)();
-
         /** @var RouterStatusInterface $status */
         $status = $request->getAttribute(Router::HANDLE_STATUS_CODE);
-        if(!$status){
+        if (!$status) {
             throw new InvalidArgumentException("RouterStatus attribute request don't yet implemented");
         }
 
         $code = $status->getStatus();
-        $response = $response->withStatus($code);
+        $method = $request->getMethod();
+        $message = $status->getMessage(StatusCode::getMessage($code));
+        $description = StatusCode::getDescription($code);
+
+        $isJSON = array_search("application/json", $request->getHeader("Accept"));
+        if ($isJSON) {
+
+            $response = new JsonResponse([
+                "error" => [
+                    "code" => $code,
+                    "message" => $message,
+                    "method" => $method
+                ]
+            ], $code);
+        } else {
+
+            ob_start();
+            require __DIR__ . '/../Resources/error.php';
+            $html = ob_get_clean();
+            $response = new HtmlResponse($html, $code);
+        }
+
         if (StatusCode::HTTP_METHOD_NOT_ALLOWED_CODE === $code) {
             $response = $response->withHeader("Allow", join(",", $status->getParams()));
         }
-
-        $response->getBody()->write(sprintf(
-            '<h3>Error %d</h3> <p> [<b>%s</b> <i>%s</i>] <br> %s </p>',
-            $status->getStatus(),
-            $request->getMethod(),
-            (string) $status->getUri(),
-            StatusCode::getMessage($code)
-        ));
 
         return $response;
     }
