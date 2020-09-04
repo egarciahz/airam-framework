@@ -98,7 +98,7 @@ return [
 
         // http-error handler
         $app->pipe(new HttpErrorHandler(function () {
-            return new Response();
+            return Application::isDevMode();
         }));
 
         return $app;
