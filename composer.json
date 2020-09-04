@@ -23,7 +23,7 @@
         },
         "files": [
             "src/Airam/functions.php",
-            "src/Airam/Common/functions.php",
+            "src/Airam/Commons/functions.php",
             "src/Airam/Template/Lib/functions.php"
         ]
     },

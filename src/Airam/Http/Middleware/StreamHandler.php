@@ -3,16 +3,16 @@
 namespace Airam\Http\Middleware;
 
 use Airam\Http\Router;
-use Airam\Service\ApplicationService;
 use Airam\Http\Lib\RouterStatusInterface;
-use HttpStatusCodes\HttpStatusCodes as StatusCode;
+use Airam\Commons\ApplicationService;
 
+use HttpStatusCodes\HttpStatusCodes as StatusCode;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
-use InvalidArgumentException;
+use RuntimeException;
 
 class StreamHandler implements MiddlewareInterface
 {
@@ -30,7 +30,7 @@ class StreamHandler implements MiddlewareInterface
         $status = $request->getAttribute(Router::HANDLE_STATUS_CODE);
 
         if (!$status) {
-            throw new InvalidArgumentException("RouterStatus attribute request don't yet implemented");
+            throw new RuntimeException("RouterStatus attribute request don't yet implemented");
         }
 
         if ($status->getStatus() !== StatusCode::HTTP_OK_CODE) {

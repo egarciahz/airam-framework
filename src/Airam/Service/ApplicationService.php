@@ -2,36 +2,35 @@
 
 namespace Airam\Service;
 
-use Airam\Application;
+use Airam\Commons\ApplicationService as ApplicationServiceInterface;
 use Airam\RequireException;
 use Laminas\Stratigility\MiddlewarePipe;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 
 use Exception;
+use Psr\Container\ContainerInterface;
+use Psr\Http\Message\ResponseInterface;
 
-/**
- * @Injectable()
- */
-class ApplicationService
+class ApplicationService implements ApplicationServiceInterface
 {
     private $app;
     private $stream;
 
-    public function __construct(Application $app)
+    public function __construct(ContainerInterface $app)
     {
         $this->app = $app;
         $this->stream = new MiddlewarePipe;
     }
 
-    public function app()
+    public function app(): ContainerInterface
     {
         return $this->app;
     }
 
-    public function register(string $path)
+    public function register(string $path): void
     {
-        if (!$this->app->isProdMode() && file_exists($path)) {
+        if (file_exists($path)) {
             $file = file_get_contents($path);
             $name = basename($path);
             $file = str_replace("<?php", "
@@ -49,12 +48,12 @@ class ApplicationService
         }
     }
 
-    public function pushMiddleware(MiddlewareInterface $middleware)
+    public function pushMiddleware(MiddlewareInterface $middleware): void
     {
         $this->stream->pipe($middleware);
     }
 
-    public function run(ServerRequestInterface $request)
+    public function run(ServerRequestInterface $request): ResponseInterface
     {
         return $this->stream->handle($request);
     }

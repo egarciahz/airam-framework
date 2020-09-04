@@ -10,6 +10,7 @@ use function DI\get;
 
 // Middlewares
 use Middlewares\Whoops as WhoopsHandler;
+
 // Whoops
 use Whoops\Run as Whoops;
 use Whoops\Handler\PrettyPageHandler as WhoopsPrettyPageHandler;
@@ -22,16 +23,17 @@ use Airam\Http\Middleware\ErrorHandler as HttpErrorHandler;
 use Airam\Http\Middleware\StatusHandler;
 use Airam\Http\Middleware\StreamHandler;
 use Airam\Http\Service\RouteService;
+
 use Airam\Service\ApplicationService;
 use Airam\Template\Middleware\TemplateHandler;
 use Airam\Template\Render\Engine as TemplateEngine;
+use Airam\Commons\ApplicationService as ApplicationServiceInterface;
 // FastRoute
-use FastRoute\RouteParser\Std as RouteStdParser;
 use FastRoute\DataGenerator\GroupCountBased as RouterDataGenerator;
+use FastRoute\RouteParser\Std as RouteStdParser;
 use FastRoute\{RouteParser, DataGenerator};
 // laminas
 use Laminas\Diactoros\Response;
-use Laminas\Diactoros\ServerRequest;
 use Laminas\Diactoros\ServerRequestFactory;
 use Laminas\Diactoros\ResponseFactory;
 use Laminas\HttpHandlerRunner\Emitter\EmitterStack;
@@ -46,19 +48,19 @@ use Throwable;
  * @return array container application config
  */
 return [
-    Application::class => autowire(),
-    ApplicationService::class => autowire(),
+    ApplicationService::class => create()->constructor(get(ContainerInterface::class)),
+    ApplicationServiceInterface::class => get(ApplicationService::class),
     // --
     Route::class => create(),
     Router::class => autowire(),
     RouteService::class => autowire(),
     StreamHandler::class => autowire(),
     StatusHandler::class => autowire(),
-    RouterHandler::class => create()->constructor(get(Router::class), get(ApplicationService::class)),
+    RouterHandler::class => autowire(),
     RouteParser::class => create(RouteStdParser::class),
     DataGenerator::class => create(RouterDataGenerator::class),
     // --
-    TemplateHandler::class => create()->constructor(get(ApplicationService::class), function () {
+    TemplateHandler::class => create()->constructor(get(ContainerInterface::class), function () {
         return new Response;
     }),
     TemplateEngine::class => create()->constructor(get("template.config")),
@@ -96,7 +98,7 @@ return [
 
         // http-error handler
         $app->pipe(new HttpErrorHandler(function () {
-            return new Response();
+            return Application::isDevMode();
         }));
 
         return $app;
