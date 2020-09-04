@@ -49,9 +49,6 @@ class Route
                 if (strlen(trim($handler)) === 0) {
                     throw new InvalidArgumentException("Route handler for path {$route} is an empty string.");
                 }
-                if (!class_exists($handler) && !is_callable($handler)) {
-                    throw new InvalidArgumentException("Route handler from path {$route} we don't use an existing class or a callable.");
-                }
                 break;
         }
 
