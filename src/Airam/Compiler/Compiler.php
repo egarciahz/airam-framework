@@ -9,15 +9,6 @@ use Error;
 
 class Compiler
 {
-    private $map;
-    private $root;
-
-    public function __construct(DirMap $map, string $root)
-    {
-        $this->map = $map;
-        $this->root = $root;
-    }
-
     public static function compileArray(array $array): string
     {
         $code = array_map(function ($value, $key) {
@@ -71,14 +62,13 @@ class Compiler
 
     private static function returnWrapper(string $code): string
     {
-        $code = "return " . trim($code, "\t\n\r;=") . ";";
-        return $code;
+        return sprintf("return %s;", trim($code, "\t\n\r;="));
     }
 
     public static function compile($value, bool $isRetornable = true)
     {
         $code = static::compileValue($value);
-        return $isRetornable ? static::returnWrapper($code) : $code;
+        return $isRetornable ? static::returnWrapper($code) : "{$code};";
     }
 
     /**
@@ -90,12 +80,11 @@ class Compiler
      * @param array $usages
      * 
      */
-    public function bundle($value, string $filename, string $namespace = null, array $usages = [])
+    public static function bundle($value, string $path, string $namespace = null, array $usages = [])
     {
 
         $data = new DataTokens;
-        $data->filename = $filename;
-        $data->dirMap = $this->map;
+        $data->filename = $path;
 
         $data->namespaceName = $namespace;
         $data->usages = $usages;
@@ -104,8 +93,7 @@ class Compiler
         ob_start();
         require __DIR__ . '/Template.php';
         $data->code = ob_get_clean();
-        $data->code = join(PHP_EOL, ["<?php", $data->code, "?>"]);
 
-        return new FileSystem($this->root, $data);
+        return file_put_contents($path, join(PHP_EOL, array("<?php", $data->code, "?>")));
     }
 }
