@@ -3,14 +3,10 @@
 namespace Airam\Template\Lib;
 
 use Airam\Template\{Template, Layout};
-
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use RegexIterator;
+use Airam\Template\Render\Renderable;
 use Closure;
 
 use function Airam\Commons\{
-    path_join,
     class_use,
     closureFactory
 };
@@ -24,27 +20,6 @@ function makeTemplateFileName(string $origin)
     return $name;
 }
 
-function matchFilesByExtension(string $folder, array $extensions, array $ignoreDirs = [], ?array $fileList = [])
-{
-    $dir = new RecursiveDirectoryIterator($folder);
-    $iter = new RecursiveIteratorIterator($dir);
-    $files = new RegexIterator($iter, '/(' . path_join("|", $extensions) . ')$/');
-    $files->setMode(RegexIterator::MATCH);
-
-    $exclude =  "({$folder}" . DIRECTORY_SEPARATOR . "+)*(" . path_join("|", $ignoreDirs) . ")";
-    $exclude = "/^" . str_replace(DIRECTORY_SEPARATOR, "\\" . DIRECTORY_SEPARATOR, $exclude) . ".+$/";
-
-    foreach ($files as $file) {
-        $path = $file->getPathname();
-        if (count($ignoreDirs) > 0 && preg_match($exclude, $path) !== 0) {
-            continue;
-        }
-        $fileList[] = $path;
-    }
-
-    return $fileList;
-}
-
 function is_template($ref)
 {
     return class_use($ref, Template::class);
@@ -53,6 +28,10 @@ function is_template($ref)
 function is_layout($ref)
 {
     return class_use($ref, Template::class) && class_use($ref, Layout::class);
+}
+
+function is_renderable($ref){
+    return class_use($ref, Renderable::class);
 }
 
 function closureCodeCompiler(Closure $closure, string $name)

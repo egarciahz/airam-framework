@@ -59,7 +59,6 @@ class Application implements ApplicationInterface
         if ($this->builder instanceof ContainerBuilder) {
 
             $this->container = $this->builder->enableCompilation("{$root}/.cache/build")
-                //->enableDefinitionCache("Airam\Cache")
                 ->writeProxiesToFile(true, "{$root}/.cache/tmp/proxies")
                 ->ignorePhpDocErrors(true)
                 ->build();
@@ -104,7 +103,7 @@ class Application implements ApplicationInterface
         $log = [
             "*****************************************",
             "*",
-            "* Airam its running!!",
+            "* Airam Framework",
             "*",
             "* Running on : " . ($_SERVER["SERVER_NAME"] . ":" . $_SERVER["SERVER_PORT"]),
             "* Production : " . (self::$production ? "Enabled" : "Disabled"),

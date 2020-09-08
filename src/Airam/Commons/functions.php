@@ -3,8 +3,12 @@
 namespace Airam\Commons;
 
 use Opis\Closure\SerializableClosure;
-use Closure;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RegexIterator;
+
 use ReflectionClass;
+use Closure;
 
 function randomId(int $length = 16): string
 {
@@ -55,7 +59,7 @@ function class_use($target, $trait): bool
 {
     $traits = [];
     if (gettype($target) === "string") {
-        $traits = class_exists($target) ? class_uses($target) : "";
+        $traits = class_exists($target) ? class_uses($target) : [];
     } else {
         $ref = new ReflectionClass($target);
         $traits = $ref->getTraitNames();
@@ -83,4 +87,25 @@ function loadResource(string $path)
     }
 
     return require $path;
+}
+
+function matchFilesByExtension(string $folder, array $extensions, array $ignoreDirs = [], ?array $fileList = [])
+{
+    $dir = new RecursiveDirectoryIterator($folder);
+    $iter = new RecursiveIteratorIterator($dir);
+    $files = new RegexIterator($iter, '/(' . path_join("|", $extensions) . ')$/');
+    $files->setMode(RegexIterator::MATCH);
+
+    $exclude =  "({$folder}" . DIRECTORY_SEPARATOR . "+)*(" . path_join("|", $ignoreDirs) . ")";
+    $exclude = "/^" . str_replace(DIRECTORY_SEPARATOR, "\\" . DIRECTORY_SEPARATOR, $exclude) . ".+$/";
+
+    foreach ($files as $file) {
+        $path = $file->getPathname();
+        if (count($ignoreDirs) > 0 && preg_match($exclude, $path) !== 0) {
+            continue;
+        }
+        $fileList[] = $path;
+    }
+
+    return $fileList;
 }

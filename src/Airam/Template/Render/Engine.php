@@ -9,17 +9,18 @@ use LightnCandy\{LightnCandy, SafeString};
 use function Airam\Template\Lib\{
     is_layout,
     makeTemplateFileName,
-    matchFilesByExtension,
     closureCodeCompiler,
     cleanFileName
 };
 use function Airam\Commons\{
     path_join,
-    loadResource
+    loadResource,
+    matchFilesByExtension
 };
 
 use ErrorException;
 use Closure;
+use Psr\Container\ContainerInterface;
 
 class Engine
 {
@@ -30,9 +31,11 @@ class Engine
 
     private static $partials = [];
     private $root;
-
-    public function __construct(array $config)
+    private $app;
+    
+    public function __construct(array $config, ContainerInterface $app)
     {
+        $this->app = $app;
         $this->config = $config;
         $this->root = getenv("ROOT_DIR");
     }
@@ -126,7 +129,7 @@ class Engine
             }
         }
 
-        $code = "return [" . join("," . PHP_EOL, $helpers) . "]";
+        $code = "return [" . join("," . PHP_EOL, $helpers) . "];";
         return $this->bundle($code, $buildDir, "helpers.bundle.php");
     }
 
@@ -149,17 +152,14 @@ class Engine
             }
 
             $name = cleanFileName($path);
-            $partial = new SafeString(file_get_contents($path));
-
-            $code = LightnCandy::compilePartial($partial, [
-                "prepartial" => function ($context, $template, $name) {
-                    return "<!-- partial start: $name -->$template<!-- partial end: $name -->";
-                }
-            ]);
+            $template = new SafeString(file_get_contents($path));
+            $template = "<!-- $name -->$template<!-- /$name -->";
+            
+            $code = LightnCandy::compilePartial($template);
             array_push($partials, "\"{$name}\" => {$code}");
         }
 
-        $code = "return [" . join("," . PHP_EOL, $partials) . "]";
+        $code = "return [" . join("," . PHP_EOL, $partials) . "];";
         return $this->bundle($code, $buildDir, "partials.bundle.php");
     }
 
@@ -261,7 +261,7 @@ class Engine
                 LightnCandy::FLAG_RUNTIMEPARTIAL |
                 LightnCandy::FLAG_BESTPERFORMANCE |
                 LightnCandy::FLAG_NAMEDARG |
-                LightnCandy::FLAG_PARENT,
+                LightnCandy::FLAG_PARENT
         ];
 
         self::$context = array_merge($context, $overrides);
