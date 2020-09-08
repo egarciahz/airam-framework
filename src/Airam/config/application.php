@@ -7,6 +7,7 @@ use function DI\create;
 use function DI\autowire;
 use function DI\factory;
 use function DI\get;
+use function Airam\Template\Lib\is_renderable;
 
 // Middlewares
 use Middlewares\Whoops as WhoopsHandler;
@@ -95,6 +96,15 @@ return [
 
         // middleware stream handler
         $app->pipe($c->get(StreamHandler::class));
+
+        // middleware observer for router data
+        $app->pipe($c->get(StatusHandler::class));
+
+        // is module has been added
+        if ($module = $c->get(Router::HANDLE_MODULE_CODE)) {
+            // if renderable then handler add to stream 
+            !is_renderable($module) ?: $app->pipe($c->get(TemplateHandler::class));
+        }
 
         // http-error handler
         $app->pipe(new HttpErrorHandler(function () {
