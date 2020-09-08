@@ -42,6 +42,9 @@
         "middlewares/redirect": "^2.0",
         "doctrine/orm": "^2.7",
         "middlewares/whoops": "^2.0",
-        "doctrine/annotations": "^1.10"
+        "doctrine/annotations": "^1.10",
+        "monolog/monolog": "^2.1",
+        "opis/closure": "^3.5",
+        "ocramius/proxy-manager": "^2.2"
     }
 }
