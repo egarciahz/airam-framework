@@ -3,7 +3,7 @@
 namespace Airam\Template\Lib;
 
 use Airam\Template\{Template, Layout};
-
+use Airam\Template\Render\Renderable;
 use Closure;
 
 use function Airam\Commons\{
@@ -28,6 +28,10 @@ function is_template($ref)
 function is_layout($ref)
 {
     return class_use($ref, Template::class) && class_use($ref, Layout::class);
+}
+
+function is_renderable($ref){
+    return class_use($ref, Renderable::class);
 }
 
 function closureCodeCompiler(Closure $closure, string $name)

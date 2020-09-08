@@ -60,7 +60,7 @@ class Router extends RouteCollector implements Dispatcher
             throw new \RuntimeException("Invalid cache folder {$path}");
         }
 
-        $this->filename = path_join(DIRECTORY_SEPARATOR, $path, "router_cache.php");
+        $this->filename = path_join(DIRECTORY_SEPARATOR, $path, "RouterContainer.php");
         $this->isDevMode = false;
 
         return $this;

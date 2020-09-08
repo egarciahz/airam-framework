@@ -15,12 +15,12 @@ use Psr\Http\Message\ResponseInterface;
 class ApplicationService implements ApplicationServiceInterface
 {
     private $app;
-    private $stream;
+    private $pipeline;
 
     public function __construct(ContainerInterface $app)
     {
         $this->app = $app;
-        $this->stream = new MiddlewarePipe;
+        $this->pipeline = new MiddlewarePipe;
     }
 
     public function app(): ContainerInterface
@@ -50,11 +50,11 @@ class ApplicationService implements ApplicationServiceInterface
 
     public function pushMiddleware(MiddlewareInterface $middleware): void
     {
-        $this->stream->pipe($middleware);
+        $this->pipeline->pipe($middleware);
     }
 
     public function run(ServerRequestInterface $request): ResponseInterface
     {
-        return $this->stream->handle($request);
+        return $this->pipeline->handle($request);
     }
 }

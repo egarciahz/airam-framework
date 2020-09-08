@@ -4,7 +4,7 @@ namespace Airam\Template\Render;
 
 use function Airam\Template\Lib\{is_layout};
 
-trait Rendereable
+trait Renderable
 {
     public $layout = [
         "layout" => null,
