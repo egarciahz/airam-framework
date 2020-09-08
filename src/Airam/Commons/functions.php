@@ -59,7 +59,7 @@ function class_use($target, $trait): bool
 {
     $traits = [];
     if (gettype($target) === "string") {
-        $traits = class_exists($target) ? class_uses($target) : "";
+        $traits = class_exists($target) ? class_uses($target) : [];
     } else {
         $ref = new ReflectionClass($target);
         $traits = $ref->getTraitNames();
