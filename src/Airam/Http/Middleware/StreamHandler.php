@@ -5,7 +5,7 @@ namespace Airam\Http\Middleware;
 use Airam\Http\Router;
 use Airam\Http\Lib\RouterStatusInterface;
 use Airam\Commons\ApplicationService;
-
+use Exception;
 use HttpStatusCodes\HttpStatusCodes as StatusCode;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -37,6 +37,11 @@ class StreamHandler implements MiddlewareInterface
             return $handler->handle($request);
         }
 
-        return $this->service->run($request, $handler);
+        try {
+            return $this->service->run($request, $handler);
+        } catch (Exception $error) {
+            error_log("\nOn StreamHandler: ". $error->getMessage(). "\n");
+            return $handler->handle($request);
+        }
     }
 }
