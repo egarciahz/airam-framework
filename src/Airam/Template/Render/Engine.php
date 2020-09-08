@@ -129,7 +129,7 @@ class Engine
             }
         }
 
-        $code = "return [" . join("," . PHP_EOL, $helpers) . "]";
+        $code = "return [" . join("," . PHP_EOL, $helpers) . "];";
         return $this->bundle($code, $buildDir, "helpers.bundle.php");
     }
 
@@ -152,17 +152,14 @@ class Engine
             }
 
             $name = cleanFileName($path);
-            $partial = new SafeString(file_get_contents($path));
-
-            $code = LightnCandy::compilePartial($partial, [
-                "prepartial" => function ($context, $template, $name) {
-                    return "<!-- partial start: $name -->$template<!-- partial end: $name -->";
-                }
-            ]);
+            $template = new SafeString(file_get_contents($path));
+            $template = "<!-- $name -->$template<!-- /$name -->";
+            
+            $code = LightnCandy::compilePartial($template);
             array_push($partials, "\"{$name}\" => {$code}");
         }
 
-        $code = "return [" . join("," . PHP_EOL, $partials) . "]";
+        $code = "return [" . join("," . PHP_EOL, $partials) . "];";
         return $this->bundle($code, $buildDir, "partials.bundle.php");
     }
 
@@ -215,11 +212,6 @@ class Engine
         return  $this->render($layout);
     }
 
-    public function resolver($cx, $partialName)
-    {
-        return $this->app->has($partialName);
-    }
-
     /**
      * @param TemplateInterface $object
      * @param bool $runtime enable runtime rendering
@@ -269,10 +261,7 @@ class Engine
                 LightnCandy::FLAG_RUNTIMEPARTIAL |
                 LightnCandy::FLAG_BESTPERFORMANCE |
                 LightnCandy::FLAG_NAMEDARG |
-                LightnCandy::FLAG_PARENT,
-            "partialresolver" => function ($cx, $name) {
-                return "$name";
-            }
+                LightnCandy::FLAG_PARENT
         ];
 
         self::$context = array_merge($context, $overrides);
