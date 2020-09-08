@@ -20,6 +20,7 @@ use function Airam\Commons\{
 
 use ErrorException;
 use Closure;
+use Psr\Container\ContainerInterface;
 
 class Engine
 {
@@ -30,9 +31,11 @@ class Engine
 
     private static $partials = [];
     private $root;
-
-    public function __construct(array $config)
+    private $app;
+    
+    public function __construct(array $config, ContainerInterface $app)
     {
+        $this->app = $app;
         $this->config = $config;
         $this->root = getenv("ROOT_DIR");
     }
@@ -212,6 +215,11 @@ class Engine
         return  $this->render($layout);
     }
 
+    public function resolver($cx, $partialName)
+    {
+        return $this->app->has($partialName);
+    }
+
     /**
      * @param TemplateInterface $object
      * @param bool $runtime enable runtime rendering
@@ -262,6 +270,9 @@ class Engine
                 LightnCandy::FLAG_BESTPERFORMANCE |
                 LightnCandy::FLAG_NAMEDARG |
                 LightnCandy::FLAG_PARENT,
+            "partialresolver" => function ($cx, $name) {
+                return "$name";
+            }
         ];
 
         self::$context = array_merge($context, $overrides);

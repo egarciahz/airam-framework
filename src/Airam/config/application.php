@@ -58,13 +58,14 @@ return [
     StreamHandler::class => autowire(),
     StatusHandler::class => autowire(),
     RouterHandler::class => autowire(),
+    // fast-route
     RouteParser::class => create(RouteStdParser::class),
     DataGenerator::class => create(RouterDataGenerator::class),
     // --
     TemplateHandler::class => create()->constructor(get(ContainerInterface::class), function () {
         return new Response;
     }),
-    TemplateEngine::class => create()->constructor(get("template.config")),
+    TemplateEngine::class => create()->constructor(get("template.config"), get(ContainerInterface::class)),
     // --
     EmitterStack::class => factory(function (ContainerInterface $c) {
         $stack = new EmitterStack();
