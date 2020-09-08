@@ -9,13 +9,13 @@ use LightnCandy\{LightnCandy, SafeString};
 use function Airam\Template\Lib\{
     is_layout,
     makeTemplateFileName,
-    matchFilesByExtension,
     closureCodeCompiler,
     cleanFileName
 };
 use function Airam\Commons\{
     path_join,
-    loadResource
+    loadResource,
+    matchFilesByExtension
 };
 
 use ErrorException;
