@@ -1,14 +1,35 @@
 <?php
 
-namespace Airam\Commons\Compiler;
+namespace Airam\Compiler;
 
 use Opis\Closure\SerializableClosure;
 use RuntimeException;
 use Closure;
 use Error;
+use Exception;
 
 class Compiler
 {
+    /**
+     * @return array<DirMap>
+     */
+    static public function buildMaps(array $scheme)
+    {
+        $keys = array_keys($scheme);
+        unset($keys[0]);
+
+        $maps = array_map(function ($name) use ($scheme) {
+            try {
+                return DirMap::fromSchema($scheme, trim($name));
+            } catch (Exception $error) {
+                $message = sprintf("Durin '%s' rule compilation, %s", $name,  $error->getMessage());
+                throw new RuntimeException($message, 0, $error);
+            }
+        }, $keys);
+
+        return array_combine($keys, $maps);
+    }
+
     public static function compileArray(array $array): string
     {
         $code = array_map(function ($value, $key) {
@@ -17,7 +38,7 @@ class Compiler
 
             return "{$key} => {$compiledValue}";
         }, $array, array_keys($array));
-        $code = join(',' . PHP_EOL, $code);
+        $code = join(PHP_EOL, ["array(" . join(',' . PHP_EOL, $code) . ")"]);
 
         return $code;
     }
@@ -94,6 +115,6 @@ class Compiler
         require __DIR__ . '/Template.php';
         $data->code = ob_get_clean();
 
-        return file_put_contents($path, join(PHP_EOL, array("<?php", $data->code, "?>")));
+        return FileSystem::write($path, join(PHP_EOL, array("<?php", $data->code, "?>")));
     }
 }
