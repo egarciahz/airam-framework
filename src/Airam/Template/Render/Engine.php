@@ -2,6 +2,7 @@
 
 namespace Airam\Template\Render;
 
+use Airam\Compiler\Compiler;
 use Airam\Template\LayoutInterface;
 use Airam\Template\TemplateInterface;
 use LightnCandy\{LightnCandy, SafeString};
@@ -9,7 +10,6 @@ use LightnCandy\{LightnCandy, SafeString};
 use function Airam\Template\Lib\{
     is_layout,
     makeTemplateFileName,
-    closureCodeCompiler,
     cleanFileName
 };
 use function Airam\Commons\{
@@ -18,9 +18,8 @@ use function Airam\Commons\{
     matchFilesByExtension
 };
 
-use ErrorException;
-use Closure;
 use Psr\Container\ContainerInterface;
+use ErrorException;
 
 class Engine
 {
@@ -32,7 +31,7 @@ class Engine
     private static $partials = [];
     private $root;
     private $app;
-    
+
     public function __construct(array $config, ContainerInterface $app)
     {
         $this->app = $app;
@@ -59,37 +58,6 @@ class Engine
     }
 
     /**
-     * @param string $code php code as string
-     * @param string $dir path folder for make file
-     * @param string $filename
-     * 
-     * @return string absolute file path
-     */
-    private function bundle(string $code, string $dir, string $filename): string
-    {
-        $code = join(PHP_EOL, [
-            "<?php",
-            "namespace Airam\Cache;",
-            "use Airam\Application;",
-            "use function Airam\Commons\{path_join,randomId,class_use};",
-            "use function Airam\Template\Lib\{is_layout,is_template};",
-            $code,
-            "?>"
-        ]);
-
-        if (file_exists($dir)) {
-            $file = path_join(DIRECTORY_SEPARATOR, $dir, $filename);
-            if (!file_put_contents($file, $code)) {
-                throw new ErrorException("Could don't create [{$filename}] file when compiling.");
-            }
-
-            return $file;
-        }
-
-        throw new ErrorException("Can not generate $filename file under {$dir}!!\n");
-    }
-
-    /**
      * @param string[] $paths array of available file paths
      * @param string $buildDir path folder for make file
      */
@@ -108,29 +76,16 @@ class Engine
             }
 
             $helper = loadResource($path);
-
-            if ($helper instanceof Closure) {
-                $name = cleanFileName($path);
-                $code = closureCodeCompiler($helper, $name);
-
-                array_push($helpers, $code);
-            }
+            $name = cleanFileName($path);
 
             if (gettype($helper) === "array") {
-                foreach ($helper as $name => $predicate) {
-                    if ($predicate instanceof Closure) {
-                        $code = closureCodeCompiler($predicate, $name);
-                        array_push($helpers, $code);
-                        continue;
-                    }
-
-                    array_push($helpers, "\"{$name}\" => " . var_export($predicate, true));
-                }
+                array_merge($helpers, $helper);
+            } else {
+                $helpers[$name] = $helper;
             }
         }
 
-        $code = "return [" . join("," . PHP_EOL, $helpers) . "];";
-        return $this->bundle($code, $buildDir, "helpers.bundle.php");
+        return Compiler::bundle($helpers, path_join(DIRECTORY_SEPARATOR, $buildDir, "/helpers.bundle.php"), "Airam\Cache");
     }
 
     /**
@@ -154,13 +109,12 @@ class Engine
             $name = cleanFileName($path);
             $template = new SafeString(file_get_contents($path));
             $template = "<!-- $name -->$template<!-- /$name -->";
-            
+
             $code = LightnCandy::compilePartial($template);
-            array_push($partials, "\"{$name}\" => {$code}");
+            $partials[$name] = $code;
         }
 
-        $code = "return [" . join("," . PHP_EOL, $partials) . "];";
-        return $this->bundle($code, $buildDir, "partials.bundle.php");
+        return Compiler::bundle($partials, path_join(DIRECTORY_SEPARATOR, $buildDir, "/partials.bundle.php"), "Airam\Cache");
     }
 
     /**
@@ -220,7 +174,6 @@ class Engine
      */
     public function render($object)
     {
-
         $data = $object->__toRender($this->isDevMode);
 
         if ($this->isDevMode) {
@@ -268,35 +221,39 @@ class Engine
         return self::$context;
     }
 
-    public function enableCompilation(string $path)
+    public function enableCompilation()
     {
-        if (!file_exists($path)) {
-            throw new \RuntimeException("Invalid cache folder {$path}");
-        }
-
         $this->isDevMode = false;
         return $this;
     }
 
     public function build()
     {
-        $this->compileHelpers(
-            matchFilesByExtension(
-                path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["helpers"]["basename"]),
-                $this->config["helpers"]["mapFiles"],
-                $this->config["helpers"]["excludeDir"],
-            ),
-            path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["helpers"]["buildDir"])
-        );
+        $maps = Compiler::buildMaps($this->config);
+        echo var_dump($maps); exit;
+        $helpersdir = path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["helpers"]["basename"]);
+        if ($this->isDevMode && !file_exists($helpersdir . "/helpers.bundle.php")) {
+            $this->compileHelpers(
+                matchFilesByExtension(
+                    $helpersdir,
+                    $this->config["helpers"]["mapFiles"],
+                    $this->config["helpers"]["excludeDir"],
+                ),
+                path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["helpers"]["buildDir"])
+            );
+        }
 
-        $this->compilePartials(
-            matchFilesByExtension(
-                path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["partials"]["basename"]),
-                $this->config["partials"]["mapFiles"],
-                $this->config["partials"]["excludeDir"],
-            ),
-            path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["partials"]["buildDir"])
-        );
+        $partialsdir = path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["partials"]["basename"]);
+        if ($this->isDevMode && !file_exists($partialsdir . "/partials.bundle.php")) {
+            $this->compilePartials(
+                matchFilesByExtension(
+                    $partialsdir,
+                    $this->config["partials"]["mapFiles"],
+                    $this->config["partials"]["excludeDir"],
+                ),
+                path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["partials"]["buildDir"])
+            );
+        }
 
         $this->loadResources();
 

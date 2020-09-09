@@ -67,7 +67,7 @@ class Application implements ApplicationInterface
             $this->router->enableCompilation("{$root}/.cache/build");
 
             $this->engine = $this->container->get(TemplateEngine::class);
-            $this->engine->enableCompilation("{$root}/.cache/render");
+            $this->engine->enableCompilation();
         }
     }
 

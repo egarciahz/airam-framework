@@ -65,7 +65,7 @@ return [
     TemplateHandler::class => create()->constructor(get(ContainerInterface::class), function () {
         return new Response;
     }),
-    TemplateEngine::class => create()->constructor(get("template.config"), get(ContainerInterface::class)),
+    TemplateEngine::class => create()->constructor(get("compiler"), get(ContainerInterface::class)),
     // --
     EmitterStack::class => factory(function (ContainerInterface $c) {
         $stack = new EmitterStack();
