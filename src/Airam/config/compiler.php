@@ -8,7 +8,7 @@ namespace Airam;
 return [
     "compiler" => [
         "config" => [
-            "root" => ".airam",
+            "root" => ".cache",
             "watch" => "app/Client",
             "subdirs" => [
                 "render",
