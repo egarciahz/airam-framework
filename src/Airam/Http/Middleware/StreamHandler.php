@@ -40,7 +40,7 @@ class StreamHandler implements MiddlewareInterface
         try {
             return $this->service->run($request, $handler);
         } catch (Exception $error) {
-            error_log("\nOn StreamHandler: ". $error->getMessage(). "\n");
+            error_log("Under the StreamHandler: ". $error->getMessage(). "\n");
             return $handler->handle($request);
         }
     }
