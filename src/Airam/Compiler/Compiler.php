@@ -11,7 +11,7 @@ use Exception;
 class Compiler
 {
     /**
-     * @return array<DirMap>
+     * @return array<string,DirMap>
      */
     static public function buildMaps(array $scheme)
     {
@@ -86,6 +86,11 @@ class Compiler
         return sprintf("return %s;", trim($code, "\t\n\r;="));
     }
 
+    public static function wrap(string $code, bool $isRetornable = true): string
+    {
+        return join(PHP_EOL, array("<?php", ($isRetornable ? static::returnWrapper($code) : $code), "?>"));
+    }
+
     public static function compile($value, bool $isRetornable = true)
     {
         $code = static::compileValue($value);
@@ -100,8 +105,9 @@ class Compiler
      * @param string|null $namespace
      * @param array $usages
      * 
+     * @return bool|int
      */
-    public static function bundle($value, string $path, string $namespace = null, array $usages = [])
+    public static function bundle($value, string $path, string $namespace = null, array $usages = [], bool $isRawValue = false)
     {
 
         $data = new DataTokens;
@@ -109,12 +115,15 @@ class Compiler
 
         $data->namespaceName = $namespace;
         $data->usages = $usages;
-        $data->code = static::compile($value);
+        $data->code = $isRawValue ? static::returnWrapper($value) : static::compile($value);
 
         ob_start();
         require __DIR__ . '/Template.php';
         $data->code = ob_get_clean();
 
-        return FileSystem::write($path, join(PHP_EOL, array("<?php", $data->code, "?>")));
+        $result = FileSystem::write($path, static::wrap($data->code, false));
+        $result ?: error_log(sprintf("Unespected error ocurrent while compiling: %s\n", $path));
+
+        return $result;
     }
 }
