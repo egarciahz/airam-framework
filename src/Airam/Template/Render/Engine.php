@@ -102,7 +102,7 @@ class Engine
         }
 
         !$this->isDevMode ?: error_log(sprintf("bundle partials: %s", $map->getPath()));
-        $partials = join(PHP_EOL, ["array(", join(PHP_EOL, $partials), ")"]);
+        $partials = Compiler::returnWrapper(join(PHP_EOL, ["array(", join(PHP_EOL, $partials), ")"]));
 
         return Compiler::bundle($partials, $map->getPath(), "Airam\Cache", [], true);
     }
@@ -119,13 +119,12 @@ class Engine
 
         $template = file_get_contents($path);
         $code = LightnCandy::compile($template, self::$context);
-        $code = Compiler::compile($code, false);
 
-        $name = makeTemplateFileName($path);
+        $name = cleanFileName(makeTemplateFileName($path));
         $cpath = $map->getPath($name);
 
         $this->isDevMode ?: error_log(sprintf("compile template: %s", $cpath));
-        if (!FileSystem::write($cpath, $code)) {
+        if (!Compiler::bundle($code, $cpath, null, [], true)) {
             throw new ErrorException("Could not create file during compilation of template: [$cpath]");
         }
 
@@ -171,11 +170,12 @@ class Engine
         } else {
 
             $dirMap = DirMap::fromSchema($this->config, "templates");
-            $name = makeTemplateFileName($data->file);
+            $name = cleanFileName(makeTemplateFileName($data->file));
 
             if (!$dirMap->isFileExist($name)) {
-                $file = $this->compileTemplate($data->file, $dirMap);
+                $this->compileTemplate($data->file, $dirMap);
             }
+            $file = $dirMap->getPath($name);
 
             $data->properties["Template"]["file"] = $file;
             $renderer = loadResource($file);

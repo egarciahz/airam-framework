@@ -81,7 +81,7 @@ class Compiler
         return var_export($value, true);
     }
 
-    private static function returnWrapper(string $code): string
+    public static function returnWrapper(string $code): string
     {
         return sprintf("return %s;", trim($code, "\t\n\r;="));
     }
@@ -115,7 +115,7 @@ class Compiler
 
         $data->namespaceName = $namespace;
         $data->usages = $usages;
-        $data->code = $isRawValue ? static::returnWrapper($value) : static::compile($value);
+        $data->code = $isRawValue ? $value : static::compile($value);
 
         ob_start();
         require __DIR__ . '/Template.php';
