@@ -4,7 +4,6 @@ namespace Airam\Template\Render;
 
 use Airam\Compiler\Compiler;
 use Airam\Compiler\DirMap;
-use Airam\Compiler\FileSystem;
 use Airam\Template\LayoutInterface;
 use Airam\Template\TemplateInterface;
 
@@ -123,7 +122,7 @@ class Engine
         $name = cleanFileName(makeTemplateFileName($path));
         $cpath = $map->getPath($name);
 
-        $this->isDevMode ?: error_log(sprintf("compile template: %s", $cpath));
+        !$this->isDevMode ?: error_log(sprintf("compile template: %s", $cpath));
         if (!Compiler::bundle($code, $cpath, null, [], true)) {
             throw new ErrorException("Could not create file during compilation of template: [$cpath]");
         }
