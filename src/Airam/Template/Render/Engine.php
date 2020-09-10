@@ -3,23 +3,25 @@
 namespace Airam\Template\Render;
 
 use Airam\Compiler\Compiler;
+use Airam\Compiler\DirMap;
+use Airam\Compiler\FileSystem;
 use Airam\Template\LayoutInterface;
 use Airam\Template\TemplateInterface;
-use LightnCandy\{LightnCandy, SafeString};
 
 use function Airam\Template\Lib\{
-    is_layout,
     makeTemplateFileName,
-    cleanFileName
+    cleanFileName,
+    is_layout
 };
 use function Airam\Commons\{
-    path_join,
-    loadResource,
-    matchFilesByExtension
+    matchFilesByExtension,
+    loadResource
 };
 
+use LightnCandy\{LightnCandy, SafeString};
 use Psr\Container\ContainerInterface;
 use ErrorException;
+use Closure;
 
 class Engine
 {
@@ -29,122 +31,105 @@ class Engine
     private $config;
 
     private static $partials = [];
-    private $root;
-    private $app;
+    public static $helpers = [];
 
     public function __construct(array $config, ContainerInterface $app)
     {
         $this->app = $app;
         $this->config = $config;
-        $this->root = getenv("ROOT_DIR");
-    }
-
-    /**
-     * load helpers and partial bundlers
-     * @param bool $isDevMode
-     */
-    private function loadResources()
-    {
-        $helpers = path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["helpers"]["buildDir"], "helpers.bundle.php");
-        $partials = path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["partials"]["buildDir"], "partials.bundle.php");
-
-        $helpers = loadResource($helpers);
-        self::$partials = loadResource($partials);
-
-        /** prepare context */
-        return $this->prepare([
-            "helpers" =>  $helpers
-        ]);
     }
 
     /**
      * @param string[] $paths array of available file paths
-     * @param string $buildDir path folder for make file
+     * @param DirMap $map
      */
-    protected function compileHelpers(array $paths, string $buildDir)
+    protected function compileHelpers(array $paths, DirMap $map)
     {
-        $helpers = [];
         foreach ($paths as $path) {
-            if (!file_exists($path)) {
-                error_log("Can not find helper file [{$path}]!\n.");
-                continue;
-            }
-
-            if (!is_readable($path)) {
-                error_log("Can not read helper file [{$path}]!\n.");
-                continue;
-            }
-
             $helper = loadResource($path);
             $name = cleanFileName($path);
 
+            !$this->isDevMode ?: error_log(sprintf("compiling helper: %s", $path));
+            if ($helper === null) {
+                error_log(sprintf("Can not find helper file [%s]!\n.", $path));
+                continue;
+            }
+
+            if ($helper === false) {
+                error_log(sprintf("Can not read helper file [%s]!\n.", $path));
+                continue;
+            }
+
             if (gettype($helper) === "array") {
-                array_merge($helpers, $helper);
-            } else {
-                $helpers[$name] = $helper;
+                static::$helpers = array_merge(static::$helpers, $helper);
+            } else if ($helper instanceof Closure) {
+                static::$helpers[$name] = $helper;
             }
         }
 
-        return Compiler::bundle($helpers, path_join(DIRECTORY_SEPARATOR, $buildDir, "/helpers.bundle.php"), "Airam\Cache");
+        !$this->isDevMode ?: error_log(sprintf("bundle helpers: %s", $map->getPath()));
+        return Compiler::bundle(static::$helpers, $map->getPath(), "Airam\Cache");
     }
 
     /**
      * @param string[] $paths array of available file paths
-     * @param string $buildDir path folder for make file
+     * @param DirMap $map
      */
-    protected function compilePartials(array $paths, string $buildDir)
+    protected function compilePartials(array $paths, DirMap $map)
     {
         $partials = [];
         foreach ($paths as $path) {
-            if (!file_exists($path)) {
-                error_log("Can not find partial file [{$path}]!\n.");
-                continue;
-            }
-
-            if (!is_readable($path)) {
-                error_log("Could not read partial file [{$path}]!\n.");
-                continue;
-            }
-
+            $partial = file_get_contents($path);
             $name = cleanFileName($path);
-            $template = new SafeString(file_get_contents($path));
-            $template = "<!-- $name -->$template<!-- /$name -->";
+
+            !$this->isDevMode ?: error_log(sprintf("compiling partial: %s", $path));
+            if ($partial === null) {
+                error_log(sprintf("Can not find helper file [%s]!\n.", $path));
+                continue;
+            }
+
+            if ($partial === false) {
+                error_log(sprintf("Can not read helper file [%s]!\n.", $path));
+                continue;
+            }
+
+            $template = new SafeString($partial);
+            $template = $this->isDevMode ? "<!-- $name -->$template<!-- /$name -->" : $template;
+
 
             $code = LightnCandy::compilePartial($template);
-            $partials[$name] = $code;
+            $partials[] = " \"{$name}\" => {$code},";
         }
 
-        return Compiler::bundle($partials, path_join(DIRECTORY_SEPARATOR, $buildDir, "/partials.bundle.php"), "Airam\Cache");
+        !$this->isDevMode ?: error_log(sprintf("bundle partials: %s", $map->getPath()));
+        $partials = join(PHP_EOL, ["array(", join(PHP_EOL, $partials), ")"]);
+
+        return Compiler::bundle($partials, $map->getPath(), "Airam\Cache", [], true);
     }
 
     /**
      * @param string $path template file path
-     * @param string $buildDir path folder for make file
+     * @param DirMap $map
      */
-    protected function compileTemplate(string $path, string $buildDir)
+    protected function compileTemplate(string $path, DirMap $map)
     {
         if (!file_exists($path)) {
-            return null;
+            $template = "<b>Template Not Found: </b> <small>{$path}</small>";
         }
 
         $template = file_get_contents($path);
         $code = LightnCandy::compile($template, self::$context);
-        $code = join(PHP_EOL, [
-            "<?php ",
-            $code
-        ]);
+        $code = Compiler::compile($code, false);
 
-        if (file_exists($buildDir)) {
-            $file = makeTemplateFileName($path);
-            $file = path_join(DIRECTORY_SEPARATOR, $buildDir, $file);
+        $name = makeTemplateFileName($path);
+        $cpath = $map->getPath($name);
 
-            $size = file_put_contents($file, $code);
-            if ($size === 0) {
-                throw new ErrorException("Could not create file during compilation of template: [$path]");
-            }
+        $this->isDevMode ?: error_log(sprintf("compile template: %s", $cpath));
+        if (!FileSystem::write($cpath, $code)) {
+            throw new ErrorException("Could not create file during compilation of template: [$cpath]");
         }
 
-        return $file;
+        return $cpath;
     }
 
     /**
@@ -185,16 +170,15 @@ class Engine
             $data->properties["Template"]["file"] = $data->file;
         } else {
 
-            $buildDir = path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["templates"]["buildDir"]);
-            $file = makeTemplateFileName($data->file);
-            $file = path_join(DIRECTORY_SEPARATOR, $buildDir, $file);
+            $dirMap = DirMap::fromSchema($this->config, "templates");
+            $name = makeTemplateFileName($data->file);
 
-            if (!file_exists($file)) {
-                $file = $this->compileTemplate($data->file, $buildDir);
+            if (!$dirMap->isFileExist($name)) {
+                $file = $this->compileTemplate($data->file, $dirMap);
             }
 
             $data->properties["Template"]["file"] = $file;
-            $renderer = require $file;
+            $renderer = loadResource($file);
         }
 
         /**
@@ -230,44 +214,53 @@ class Engine
     public function build()
     {
         $maps = Compiler::buildMaps($this->config);
-        echo var_dump($maps); exit;
-        $helpersdir = path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["helpers"]["basename"]);
-        if ($this->isDevMode && !file_exists($helpersdir . "/helpers.bundle.php")) {
+        $partials = $maps["partials"];
+        $helpers = $maps["helpers"];
+
+
+        if ($this->isDevMode ?: !$helpers->isFileExist()) {
+            error_log("compileHelpers");
             $this->compileHelpers(
                 matchFilesByExtension(
-                    $helpersdir,
-                    $this->config["helpers"]["mapFiles"],
-                    $this->config["helpers"]["excludeDir"],
+                    $helpers->getDirname(),
+                    $helpers->files,
+                    $helpers->exclude,
                 ),
-                path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["helpers"]["buildDir"])
+                $helpers
             );
         }
 
-        $partialsdir = path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["partials"]["basename"]);
-        if ($this->isDevMode && !file_exists($partialsdir . "/partials.bundle.php")) {
+        if ($this->isDevMode ?: !$partials->isFileExist()) {
             $this->compilePartials(
                 matchFilesByExtension(
-                    $partialsdir,
-                    $this->config["partials"]["mapFiles"],
-                    $this->config["partials"]["excludeDir"],
+                    $partials->getDirname(),
+                    $partials->files,
+                    $partials->exclude,
                 ),
-                path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["partials"]["buildDir"])
+                $partials
             );
         }
 
-        $this->loadResources();
+        /** load compiled helpers and partial files */
+        $helpers = loadResource($helpers->getPath());
+        self::$partials = loadResource($partials->getPath());
+        /** prepare context */
+        return $this->prepare([
+            "helpers" =>  $helpers
+        ]);
 
         if (!$this->isDevMode) {
-            $templates = matchFilesByExtension(
-                path_join(DIRECTORY_SEPARATOR, $this->root, $this->config["templates"]["basename"]),
-                $this->config["templates"]["mapFiles"],
-                $this->config["templates"]["excludeDir"]
+            $templates = $maps["templates"];
+            $paths = matchFilesByExtension(
+                $templates->getDirname(),
+                $templates->files,
+                $templates->exclude
             );
 
-            foreach ($templates as $path) {
+            foreach ($paths as $path) {
                 $this->compileTemplate(
                     $path,
-                    path_join(DIRECTORY_SEPARATOR, $this->root, ".cache", $this->config["templates"]["buildDir"])
+                    $templates
                 );
             }
         }
