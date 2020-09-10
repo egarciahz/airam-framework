@@ -51,12 +51,12 @@ class DirMap
         return new DirMap($config, $map["target"], null, null);
     }
 
-    public function getPath(string $name): string
+    public function getPath(string $name = null): string
     {
         return $this->prepare($this->target, ["filename" => $name]);
     }
 
-    public function isFileExist(string $name): bool
+    public function isFileExist(string $name = null): bool
     {
         return file_exists($this->getPath($name));
     }

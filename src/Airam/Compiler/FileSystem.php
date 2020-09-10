@@ -5,6 +5,7 @@ namespace Airam\Compiler;
 use InvalidArgumentException;
 
 use function Airam\Commons\path_join;
+use function Airam\Template\Lib\cleanFileName;
 
 class FileSystem
 {
@@ -39,7 +40,7 @@ class FileSystem
     {
         $dir = dirname($path);
         $name = basename($path);
-        $tempName = date("s-u-") . $name;
+        $tempName = date("s-u-") . cleanFileName($name);
 
         if (!is_dir($dir) && static::makeDirectory($dir)) {
             return static::error(sprintf('Error while writing %s under %s directory', $name, $dir));
@@ -49,12 +50,12 @@ class FileSystem
         @chmod($tmpFile, 0666);
 
         $written = file_put_contents($tmpFile, $content);
-        if ($written === false) {
+        if (!$written) {
             @unlink($tmpFile);
             return static::error(sprintf('Error while writing to %s', $tmpFile));
         }
 
-        $renamed = @rename($tmpFile, $name);
+        $renamed = @rename($tmpFile, $path);
         @unlink($tmpFile);
         if (!$renamed) {
             return static::error(sprintf('Error while renaming %s to %s', $tmpFile, $name));

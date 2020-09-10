@@ -6,6 +6,7 @@ use function Airam\Commons\path_join;
 
 class Config
 {
+    public $tmp;
     public $root;
     public $watch;
     public $subdirs;
@@ -18,8 +19,9 @@ class Config
     public function __construct(string $dirname, string $watch, array $subdirs = [])
     {
         $this->root = realpath(path_join(DIRECTORY_SEPARATOR, getenv("ROOT_DIR"), $dirname));
+        $this->watch =  realpath(path_join(DIRECTORY_SEPARATOR, getenv("ROOT_DIR"), $watch));
+        $this->tmp = path_join(DIRECTORY_SEPARATOR, $this->root, "tmp");
         $this->subdirs = $subdirs;
-        $this->watch = $watch;
     }
 
     public static function fromArray(array $config): Config
@@ -27,7 +29,9 @@ class Config
         return new Config($config["root"], $config["watch"], $config["subdirs"]);
     }
 
-    public function build(){
+    public function build()
+    {
         FileSystem::makeDirectoryMap($this->root, $this->subdirs);
+        FileSystem::makeDirectory($this->tmp);
     }
 }

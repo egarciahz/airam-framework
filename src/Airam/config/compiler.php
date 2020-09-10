@@ -18,7 +18,7 @@ return [
         ],
         // configurations for Template
         "helpers" => [
-            "target" => "{root}/render/helpers/{filename}.bundle.php",
+            "target" => "{root}/render/helpers/helpers.bundle.php",
             "watch" => [
                 "files" => [".helper.php"],
                 "dirname" => "{watch}/helpers",
@@ -34,7 +34,7 @@ return [
             ],
         ],
         "partials" => [
-            "target" => "{root}/render/partials/{filename}.bundle.php",
+            "target" => "{root}/render/partials/partials.bundle.php",
             "watch" => [
                 "files" => [".hbs", ".partial.html", ".partial.hbs"],
                 "dirname" => "{watch}/",
