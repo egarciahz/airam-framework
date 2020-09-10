@@ -9,6 +9,7 @@ use ReflectionClass;
 use ReflectionMethod;
 use ReflectionProperty;
 use Error;
+use RuntimeException;
 
 /**
  * This trait expose methods for compile and prepare instance metadata for the rendering.
@@ -140,11 +141,11 @@ trait Template
         $template_dir = path_join(DIRECTORY_SEPARATOR, dirname($filename), $template_name);
 
         if (!file_exists($template_dir)) {
-            throw new Error("Not Found Template File $name from [$namespace] controller.", 500);
+            throw new RuntimeException("Not Found Template File $name from [$namespace] controller.", 404);
         }
 
         if (!is_readable($template_dir)) {
-            throw new Error("Template File [$name] doesn't us readable", 500);
+            throw new RuntimeException("Template File [$name] doesn't us readable", 404);
         }
 
         $data = new Data;
