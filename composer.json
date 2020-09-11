@@ -1,7 +1,7 @@
 {
     "name": "egarciahz/airam-framework",
     "license": "MIT",
-    "description": "Airam its a web component oriented framework for the fast startup of web applications",
+    "description": "Airam is a web component oriented framework for the fast startup of web applications",
     "keywords": [
         "framework",
         "airam"
@@ -14,15 +14,17 @@
     ],
     "minimum-stability": "alpha",
     "prefer-stable": true,
+    "bin": [
+        "bin/airam"
+    ],
     "autoload": {
         "psr-4": {
-            "Core\\": "src",
-            "App\\": "app"
+            "Airam\\": "src/Airam"
         },
         "files": [
-            "src/functions.php",
-            "src/Utils/functions.php",
-            "src/Template/Lib/functions.php"
+            "src/Airam/functions.php",
+            "src/Airam/Commons/functions.php",
+            "src/Airam/Template/Lib/functions.php"
         ]
     },
     "require": {
@@ -40,6 +42,9 @@
         "middlewares/redirect": "^2.0",
         "doctrine/orm": "^2.7",
         "middlewares/whoops": "^2.0",
-        "doctrine/annotations": "^1.10"
+        "doctrine/annotations": "^1.10",
+        "monolog/monolog": "^2.1",
+        "opis/closure": "^3.5",
+        "ocramius/proxy-manager": "^2.2"
     }
 }
