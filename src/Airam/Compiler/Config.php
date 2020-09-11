@@ -1,10 +1,13 @@
 <?php
 
-namespace Airam\Commons\Compiler;
+namespace Airam\Compiler;
+
+use function Airam\Commons\path_join;
 
 class Config
 {
-    public $dirname;
+    public $tmp;
+    public $root;
     public $watch;
     public $subdirs;
 
@@ -15,8 +18,20 @@ class Config
      */
     public function __construct(string $dirname, string $watch, array $subdirs = [])
     {
-        $this->dirname = $dirname;
+        $this->root = realpath(path_join(DIRECTORY_SEPARATOR, getenv("ROOT_DIR"), $dirname));
+        $this->watch =  realpath(path_join(DIRECTORY_SEPARATOR, getenv("ROOT_DIR"), $watch));
+        $this->tmp = path_join(DIRECTORY_SEPARATOR, $this->root, "tmp");
         $this->subdirs = $subdirs;
-        $this->watch = $watch;
+    }
+
+    public static function fromArray(array $config): Config
+    {
+        return new Config($config["root"], $config["watch"], $config["subdirs"]);
+    }
+
+    public function build()
+    {
+        FileSystem::makeDirectoryMap($this->root, $this->subdirs);
+        FileSystem::makeDirectory($this->tmp);
     }
 }

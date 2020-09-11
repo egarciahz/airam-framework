@@ -1,14 +1,35 @@
 <?php
 
-namespace Airam\Commons\Compiler;
+namespace Airam\Compiler;
 
 use Opis\Closure\SerializableClosure;
 use RuntimeException;
 use Closure;
 use Error;
+use Exception;
 
 class Compiler
 {
+    /**
+     * @return array<string,DirMap>
+     */
+    static public function buildMaps(array $scheme)
+    {
+        $keys = array_keys($scheme);
+        unset($keys[0]);
+
+        $maps = array_map(function ($name) use ($scheme) {
+            try {
+                return DirMap::fromSchema($scheme, trim($name));
+            } catch (Exception $error) {
+                $message = sprintf("Durin '%s' rule compilation, %s", $name,  $error->getMessage());
+                throw new RuntimeException($message, 0, $error);
+            }
+        }, $keys);
+
+        return array_combine($keys, $maps);
+    }
+
     public static function compileArray(array $array): string
     {
         $code = array_map(function ($value, $key) {
@@ -17,7 +38,7 @@ class Compiler
 
             return "{$key} => {$compiledValue}";
         }, $array, array_keys($array));
-        $code = join(',' . PHP_EOL, $code);
+        $code = join(PHP_EOL, ["array(" . join(',' . PHP_EOL, $code) . ")"]);
 
         return $code;
     }
@@ -60,9 +81,14 @@ class Compiler
         return var_export($value, true);
     }
 
-    private static function returnWrapper(string $code): string
+    public static function returnWrapper(string $code): string
     {
         return sprintf("return %s;", trim($code, "\t\n\r;="));
+    }
+
+    public static function wrap(string $code, bool $isRetornable = true): string
+    {
+        return join(PHP_EOL, array("<?php", ($isRetornable ? static::returnWrapper($code) : $code), "?>"));
     }
 
     public static function compile($value, bool $isRetornable = true)
@@ -79,8 +105,9 @@ class Compiler
      * @param string|null $namespace
      * @param array $usages
      * 
+     * @return bool|int
      */
-    public static function bundle($value, string $path, string $namespace = null, array $usages = [])
+    public static function bundle($value, string $path, string $namespace = null, array $usages = [], bool $isRawValue = false)
     {
 
         $data = new DataTokens;
@@ -88,12 +115,15 @@ class Compiler
 
         $data->namespaceName = $namespace;
         $data->usages = $usages;
-        $data->code = static::compile($value);
+        $data->code = $isRawValue ? $value : static::compile($value);
 
         ob_start();
         require __DIR__ . '/Template.php';
         $data->code = ob_get_clean();
 
-        return file_put_contents($path, join(PHP_EOL, array("<?php", $data->code, "?>")));
+        $result = FileSystem::write($path, static::wrap($data->code, false));
+        $result ?: error_log(sprintf("Unespected error ocurrent while compiling: %s\n", $path));
+
+        return $result;
     }
 }

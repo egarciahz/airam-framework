@@ -32,6 +32,7 @@ function applicationFactory($root_dir): Application
 
     $app->addDefinitions(__DIR__ . '/config/application.php');
     $app->addDefinitions(__DIR__ . '/config/cache.php');
+    $app->addDefinitions(__DIR__ . '/config/compiler.php');
 
     return $app;
 };

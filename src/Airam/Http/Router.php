@@ -2,6 +2,7 @@
 
 namespace Airam\Http;
 
+use Airam\Compiler\Compiler;
 use FastRoute\{DataGenerator, RouteCollector, Dispatcher, RouteParser};
 use FastRoute\Dispatcher\GroupCountBased;
 use function Airam\Commons\{loadResource, path_join};
@@ -77,7 +78,7 @@ class Router extends RouteCollector implements Dispatcher
     {
         if (!$this->isDevMode && !file_exists($this->filename)) {
             $data = parent::getData();
-            file_put_contents($this->filename, "<?php return " . var_export($data, true) . ';', LOCK_EX);
+            return Compiler::bundle($data, $this->filename, "Airam\Cache");
         }
     }
 }

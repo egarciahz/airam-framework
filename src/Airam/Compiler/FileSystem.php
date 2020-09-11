@@ -1,59 +1,21 @@
 <?php
 
-namespace Airam\Commons\Compiler;
+namespace Airam\Compiler;
 
 use InvalidArgumentException;
 
 use function Airam\Commons\path_join;
+use function Airam\Template\Lib\cleanFileName;
 
 class FileSystem
 {
-    /** @var DataTokens|DirMap $scope */
-    private $scope;
-
-    /** @var string $root */
-    private $root;
-
-    /** @var string $base */
-    private $base;
 
     /**
-     * @param string $root 
-     * @param DataTokens|DirMap $scope
+     * @param bool $isDevMode
      */
-    public function __construct(string $root, $scope = null)
-    {
-        if (!$scope instanceof DataTokens && !$scope instanceof DirMap) {
-            throw new InvalidArgumentException("scope must be instance of DataTokens or DirMap");
-        }
+    static public $isDevMode = true;
 
-        $this->root = $root;
-        $this->base = $root;
-        $this->scope = $scope;
-    }
-
-    public function save(?string $filename = null)
-    {
-        if ($this->scope instanceof DataTokens) {
-        }
-    }
-
-    public function make()
-    {
-        $data = $this->scope;
-        if ($data instanceof DataTokens) {
-            $data = $this->scope->dirMap;
-        }
-
-        /** @var DirMap $data */
-        if ($data) {
-            $this->base = path_join(DIRECTORY_SEPARATOR, $this->root, $data->getDirname());
-            $this->makeDirectoryMap($this->base, $data->subdirs);
-        }
-        return $this;
-    }
-
-    private function makeDirectoryMap(string $base, array $subdirs)
+    public static function makeDirectoryMap(string $base, array $subdirs)
     {
         static::makeDirectory($base);
         foreach ($subdirs as $sub) {
@@ -65,14 +27,50 @@ class FileSystem
     public static function makeDirectory(string $directory)
     {
         if (!is_dir($directory) && !@mkdir($directory, 0777, true)) {
-            throw new InvalidArgumentException(sprintf('Compilation directory does not exist and cannot be created: %s.', $directory));
+            return static::error(sprintf('Compilation directory does not exist and cannot be created: %s.', $directory));
         }
         if (!is_writable($directory)) {
-            throw new InvalidArgumentException(sprintf('Compilation directory is not writable: %s.', $directory));
+            return static::error(sprintf('Compilation directory is not writable: %s.', $directory));
         }
+
+        return true;
     }
 
-    public static function writeFile(string $filename, string $content)
+    public static function write(string $path, string $content)
     {
+        $dir = dirname($path);
+        $name = basename($path);
+        $tempName = date("s-u-") . cleanFileName($name);
+
+        if (!is_dir($dir) && static::makeDirectory($dir)) {
+            return static::error(sprintf('Error while writing %s under %s directory', $name, $dir));
+        }
+
+        $tmpFile = tempnam($dir, $tempName);
+        @chmod($tmpFile, 0666);
+
+        $written = file_put_contents($tmpFile, $content);
+        if (!$written) {
+            @unlink($tmpFile);
+            return static::error(sprintf('Error while writing to %s', $tmpFile));
+        }
+
+        $renamed = @rename($tmpFile, $path);
+        @unlink($tmpFile);
+        if (!$renamed) {
+            return static::error(sprintf('Error while renaming %s to %s', $tmpFile, $name));
+        }
+
+        return $written;
+    }
+
+    private static function error(string $message)
+    {
+        if (static::$isDevMode) {
+            error_log($message);
+            return false;
+        }
+
+        throw new InvalidArgumentException($message);
     }
 }

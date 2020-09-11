@@ -1,6 +1,6 @@
 <?php
 
-namespace Airam\Commons\Compiler;
+namespace Airam\Compiler;
 
 class DataTokens
 {
