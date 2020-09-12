@@ -6,13 +6,15 @@ use Airam\Http\Router;
 use Airam\Http\Lib\RouterSplInterface;
 use Airam\Template\Render\Engine as TemplateEngine;
 use Airam\Commons\ApplicationInterface;
-
+use Airam\Compiler\Config;
 use DI\{Container, ContainerBuilder};
 use Dotenv\Dotenv;
 
 use Laminas\HttpHandlerRunner\RequestHandlerRunner;
 use RuntimeException;
 
+use function Airam\Commons\loadResource;
+use function Airam\Commons\path_join;
 use function DI\autowire;
 
 
@@ -30,12 +32,6 @@ class Application implements ApplicationInterface
 
     /** @var Dotenv $env */
     private $env;
-
-    /** @var Router $router */
-    private $router;
-
-    /** @var TemplateEngine $engine */
-    private $engine;
 
     /**
      * @param ContainerBuilder $builder
@@ -58,16 +54,20 @@ class Application implements ApplicationInterface
         $root = getenv('ROOT_DIR');
         if ($this->builder instanceof ContainerBuilder) {
 
+            $data = loadResource(path_join(DIRECTORY_SEPARATOR, __DIR__, "config", "compiler.php"));
+            $config = Config::fromArray($data['compiler']);
+            $config->build();
+
             $this->container = $this->builder->enableCompilation("{$root}/.cache/build")
                 ->writeProxiesToFile(true, "{$root}/.cache/tmp/proxies")
                 ->ignorePhpDocErrors(true)
                 ->build();
 
-            $this->router = $this->container->get(Router::class);
-            $this->router->enableCompilation("{$root}/.cache/build");
+            $router = $this->container->get(Router::class);
+            $router->enableCompilation("{$root}/.cache/build");
 
-            $this->engine = $this->container->get(TemplateEngine::class);
-            $this->engine->enableCompilation();
+            $engine = $this->container->get(TemplateEngine::class);
+            $engine->enableCompilation();
         }
     }
 
@@ -129,24 +129,11 @@ class Application implements ApplicationInterface
 
         $this->container->set(self::class, $this);
 
-        if (!($this->router instanceof Router)) {
-            $this->router = $this->container->get(Router::class);
-        }
-
-        if (!($this->engine instanceof TemplateEngine)) {
-            $this->engine = $this->container->get(TemplateEngine::class);
-        }
-
-        /** @var RouterSplInterface $module */
-        $module = $this->container->get(Router::HANDLE_MODULE_CODE);
-        $module->register();
-
         /** @var RequestHandlerRunner $runner */
         $runner = $this->container->get(RequestHandlerRunner::class);
-        $this->logStartUp();
-        $this->router->build();
-        $this->engine->build();
         $runner->run();
+
+        $this->logStartUp();
     }
 
     public static function isDevMode(): bool
