@@ -41,6 +41,7 @@ class ErrorHandler implements MiddlewareInterface
         $method = $request->getMethod();
         $message = $status->getMessage(StatusCode::getMessage($code));
         $description = StatusCode::getDescription($code);
+        $note = $status->getUri()->getPath();
 
         $isJSON = array_search("application/json", $request->getHeader("Accept"));
         if ($isJSON) {
@@ -55,7 +56,7 @@ class ErrorHandler implements MiddlewareInterface
         } else {
 
             ob_start();
-            require __DIR__ . '/../Resources/error.php';
+            require __DIR__ . '/../Resources/errorTemplate.php';
             $html = ob_get_clean();
             $response = new HtmlResponse($html, $code);
         }
