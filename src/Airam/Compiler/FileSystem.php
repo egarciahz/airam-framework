@@ -2,10 +2,9 @@
 
 namespace Airam\Compiler;
 
-use InvalidArgumentException;
-
 use function Airam\Commons\path_join;
 use function Airam\Template\Lib\cleanFileName;
+use RuntimeException;
 
 class FileSystem
 {
@@ -42,7 +41,7 @@ class FileSystem
         $name = basename($path);
         $tempName = date("s-u-") . cleanFileName($name);
 
-        if (!is_dir($dir) && static::makeDirectory($dir)) {
+        if (!is_dir($dir) && !static::makeDirectory($dir)) {
             return static::error(sprintf('Error while writing %s under %s directory', $name, $dir));
         }
 
@@ -66,11 +65,11 @@ class FileSystem
 
     private static function error(string $message)
     {
-        if (static::$isDevMode) {
+        if (!static::$isDevMode) {
             error_log($message);
             return false;
         }
 
-        throw new InvalidArgumentException($message);
+        throw new RuntimeException($message);
     }
 }
