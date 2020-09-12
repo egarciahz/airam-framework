@@ -26,7 +26,7 @@ class FileSystem
     public static function makeDirectory(string $directory)
     {
         if (!is_dir($directory) && !@mkdir($directory, 0777, true)) {
-            return static::error(sprintf('Compilation directory does not exist and cannot be created: %s.', $directory));
+            return static::error(sprintf('Compilation directory does not exist and can not be created: %s.', $directory));
         }
         if (!is_writable($directory)) {
             return static::error(sprintf('Compilation directory is not writable: %s.', $directory));
@@ -51,13 +51,13 @@ class FileSystem
         $written = file_put_contents($tmpFile, $content);
         if (!$written) {
             @unlink($tmpFile);
-            return static::error(sprintf('Error while writing to %s', $tmpFile));
+            return static::error(sprintf('Error ocurred while writing to %s', $tmpFile));
         }
 
         $renamed = @rename($tmpFile, $path);
         @unlink($tmpFile);
         if (!$renamed) {
-            return static::error(sprintf('Error while renaming %s to %s', $tmpFile, $name));
+            return static::error(sprintf('Error ocurred while renaming %s to %s', $tmpFile, $name));
         }
 
         return $written;
