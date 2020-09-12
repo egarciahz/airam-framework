@@ -8,3 +8,4 @@ Airam is an easy-to-start web development framework, focused on providing the de
 - Router based on FastRouter.
 - Dependency injection container accessible from the application instance.
 - Fast template engine optimized for production.
+- Build container function network and template elements
