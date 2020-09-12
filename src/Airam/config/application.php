@@ -51,6 +51,7 @@ use Throwable;
 return [
     ApplicationService::class => create()->constructor(get(ContainerInterface::class)),
     ApplicationServiceInterface::class => get(ApplicationService::class),
+    ApplicationHandler::class => autowire(),
     // --
     Route::class => create(),
     Router::class => autowire(),
@@ -91,6 +92,9 @@ return [
 
         // error handler
         $app->pipe($c->get(WhoopsHandler::class));
+
+
+        $app->pipe($c->get(ApplicationHandler::class));
 
         // router handler
         $app->pipe($c->get(RouterHandler::class));

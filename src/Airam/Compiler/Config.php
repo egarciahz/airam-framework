@@ -18,8 +18,8 @@ class Config
      */
     public function __construct(string $dirname, string $watch, array $subdirs = [])
     {
-        $this->root = realpath(path_join(DIRECTORY_SEPARATOR, getenv("ROOT_DIR"), $dirname));
-        $this->watch =  realpath(path_join(DIRECTORY_SEPARATOR, getenv("ROOT_DIR"), $watch));
+        $this->root = path_join(DIRECTORY_SEPARATOR, getenv("ROOT_DIR"), $dirname);
+        $this->watch = path_join(DIRECTORY_SEPARATOR, getenv("ROOT_DIR"), $watch);
         $this->tmp = path_join(DIRECTORY_SEPARATOR, $this->root, "tmp");
         $this->subdirs = $subdirs;
     }

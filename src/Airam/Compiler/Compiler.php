@@ -122,7 +122,10 @@ class Compiler
         $data->code = ob_get_clean();
 
         $result = FileSystem::write($path, static::wrap($data->code, false));
-        $result ?: error_log(sprintf("Unespected error ocurrent while compiling: %s\n", $path));
+        if (!$result) {
+            $error = error_get_last();
+            return error_log($error ? sprintf("Error ocurred while compiling [%s]: %s\n", $path, $erro['message']) : sprintf("Unespected error ocurrent while compiling: %s\n", $path));
+        }
 
         return $result;
     }
