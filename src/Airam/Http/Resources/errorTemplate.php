@@ -71,10 +71,12 @@
         <div class="header">
             <strong> <?= $code; ?> </strong>
             <div class="text-container">
-                <b class="title"> HTTP Error</b>
+                <b class="title">
+                    <?= ($title ?: "HTTP Error"); ?>
+                </b>
                 <small class="subtitle">
-                    <span><?= $message; ?></span>
-                    <span class="note"><?= $status->getUri()->getPath(); ?></span>
+                    <span><?= $message; ?></span><br>
+                    <span class="note"><?= ($note ?: "") ?></span>
                 </small>
             </div>
         </div>
