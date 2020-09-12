@@ -31,7 +31,6 @@ function applicationFactory($root_dir): Application
     $app = new Application(new ContainerBuilder(),  $dotenv);
 
     $app->addDefinitions(__DIR__ . '/config/application.php');
-    $app->addDefinitions(__DIR__ . '/config/cache.php');
     $app->addDefinitions(__DIR__ . '/config/compiler.php');
 
     return $app;
