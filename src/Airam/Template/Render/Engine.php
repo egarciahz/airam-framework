@@ -95,7 +95,6 @@ class Engine
             $template = new SafeString($partial);
             $template = $this->isDevMode ? "<!-- $name -->$template<!-- /$name -->" : $template;
 
-
             $code = LightnCandy::compilePartial($template);
             $partials[] = " \"{$name}\" => {$code},";
         }
@@ -200,8 +199,7 @@ class Engine
                 LightnCandy::FLAG_PARENT
         ];
 
-        self::$context = array_merge($context, $overrides);
-        return self::$context;
+        return array_merge($context, $overrides);
     }
 
     public function enableCompilation()
@@ -213,12 +211,9 @@ class Engine
     public function build()
     {
         $maps = Compiler::buildMaps($this->config);
-        $partials = $maps["partials"];
+
         $helpers = $maps["helpers"];
-
-
         if ($this->isDevMode ?: !$helpers->isFileExist()) {
-            error_log("compileHelpers");
             $this->compileHelpers(
                 matchFilesByExtension(
                     $helpers->getDirname(),
@@ -229,6 +224,7 @@ class Engine
             );
         }
 
+        $partials = $maps["partials"];
         if ($this->isDevMode ?: !$partials->isFileExist()) {
             $this->compilePartials(
                 matchFilesByExtension(
@@ -241,11 +237,11 @@ class Engine
         }
 
         /** load compiled helpers and partial files */
-        $helpers = loadResource($helpers->getPath());
-        self::$partials = loadResource($partials->getPath());
+        static::$helpers = loadResource($helpers->getPath());
+        static::$partials = loadResource($partials->getPath());
         /** prepare context */
-        return $this->prepare([
-            "helpers" =>  $helpers
+        static::$context =  $this->prepare([
+            "helpers" => static::$helpers
         ]);
 
         if (!$this->isDevMode) {

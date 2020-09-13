@@ -3,9 +3,10 @@
 </p>
 
 <p align="center">
-
-[![Latest Stable Version](https://poser.pugx.org/egarciahz/airam-framework/v)](//packagist.org/packages/egarciahz/airam-framework) [![Total Downloads](https://poser.pugx.org/egarciahz/airam-framework/downloads)](//packagist.org/packages/egarciahz/airam-framework) [![Latest Unstable Version](https://poser.pugx.org/egarciahz/airam-framework/v/unstable)](//packagist.org/packages/egarciahz/airam-framework) [![License](https://poser.pugx.org/egarciahz/airam-framework/license)](//packagist.org/packages/egarciahz/airam-framework)
-
+<a href="https://packagist.org/packages/egarciahz/airam-framework"><img src="https://poser.pugx.org/egarciahz/airam-framework/v/stable.svg" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/egarciahz/airam-framework"><img src="https://poser.pugx.org/egarciahz/airam-framework/d/total.svg" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/egarciahz/airam-framework"><img src="https://poser.pugx.org/egarciahz/airam-framework/v/unstable.svg" alt="Latest Unstable Version"></a>
+<a href="https://packagist.org/packages/egarciahz/airam-framework"><img src="https://poser.pugx.org/egarciahz/airam-framework/license.svg" alt="License"></a>
 </p>
 
 > Core of the Airam project
