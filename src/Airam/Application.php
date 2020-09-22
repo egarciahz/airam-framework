@@ -11,6 +11,7 @@ use DI\{Container, ContainerBuilder};
 use Dotenv\Dotenv;
 
 use Laminas\HttpHandlerRunner\RequestHandlerRunner;
+use Psr\Container\ContainerInterface;
 use RuntimeException;
 
 use function Airam\Commons\loadResource;
@@ -71,6 +72,16 @@ class Application implements ApplicationInterface
         }
     }
 
+    public function build(): ContainerInterface
+    {
+        if (!($this->container instanceof Container)) {
+            $this->container = $this->builder->build();
+            $this->container->set(self::class, $this);
+        }
+
+        return $this->container;
+    }
+
     public function addDefinitions(...$definitions): void
     {
         if (!$this->container) {
@@ -112,7 +123,7 @@ class Application implements ApplicationInterface
             "*****************************************"
         ];
 
-        error_log("\n" . join("\n", $log));
+        $this->isProdMode() ?: error_log("\n" . join("\n", $log));
     }
 
     public function getDotenv(): Dotenv
@@ -122,15 +133,10 @@ class Application implements ApplicationInterface
 
     public function run(): void
     {
-
-        if (!($this->container instanceof Container)) {
-            $this->container = $this->builder->build();
-        }
-
-        $this->container->set(self::class, $this);
+        $container = $this->build();
 
         /** @var RequestHandlerRunner $runner */
-        $runner = $this->container->get(RequestHandlerRunner::class);
+        $runner = $container->get(RequestHandlerRunner::class);
         $runner->run();
 
         $this->logStartUp();
