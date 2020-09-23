@@ -9,6 +9,7 @@ use RegexIterator;
 
 use ReflectionClass;
 use Closure;
+use InvalidArgumentException;
 
 function randomId(int $length = 16): string
 {

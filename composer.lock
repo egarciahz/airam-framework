@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b4200590d7ea1693910c9a20cd8f5599",
+    "content-hash": "b8182a7b8da8884c47b4fb39c20a824d",
     "packages": [
         {
             "name": "container-interop/container-interop",
@@ -3678,6 +3678,52 @@
                 }
             ],
             "time": "2020-07-14T19:26:25+00:00"
+        },
+        {
+            "name": "xmarcos/dot-container",
+            "version": "0.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/xmarcos/DotContainer.git",
+                "reference": "5937e8c6ce0bd998239fbcdc8453d743c436b420"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/xmarcos/DotContainer/zipball/5937e8c6ce0bd998239fbcdc8453d743c436b420",
+                "reference": "5937e8c6ce0bd998239fbcdc8453d743c436b420",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4.0"
+            },
+            "require-dev": {
+                "fabpot/php-cs-fixer": "@stable",
+                "phpunit/phpunit": "@stable"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "xmarcos\\Dot\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Marcos Sader",
+                    "email": "xmarcos@gmail.com"
+                }
+            ],
+            "description": "DotContainer enables deep array access using dot-notation.",
+            "keywords": [
+                "array",
+                "container",
+                "dot",
+                "dot-notation"
+            ],
+            "time": "2014-12-28T00:03:34+00:00"
         },
         {
             "name": "zendframework/zend-code",

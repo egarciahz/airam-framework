@@ -22,7 +22,8 @@ function applicationFactory($root_dir): Application
 
     try {
         $dir = realpath($root_dir);
-
+        define("ROOT_DIR", $dir);
+        
         $repository->set('ROOT_DIR', $dir);
         $dotenv = Dotenv::create($repository, $dir);
 
@@ -31,6 +32,7 @@ function applicationFactory($root_dir): Application
         $dotenv->required('ROOT_DIR');
         
     } catch (Exception $error) {
+     
         /**
          * variable definitions for errorTemplate
          */
@@ -45,7 +47,7 @@ function applicationFactory($root_dir): Application
         $response = ob_get_clean();
         // response to the client
         header("HTTP/1.1 500 Server Error");
-        echo $response;
+        echo var_export($_ENV, true); //$response;
         exit;
     }
     /** @var Application $app */
@@ -53,6 +55,7 @@ function applicationFactory($root_dir): Application
 
     $app->addDefinitions(__DIR__ . '/config/application.php');
     $app->addDefinitions(__DIR__ . '/config/compiler.php');
+    //$app->addDefinitions(__DIR__ . '/config/orm.php');
 
     return $app;
 };

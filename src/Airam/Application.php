@@ -56,7 +56,7 @@ class Application implements ApplicationInterface
         if ($this->builder instanceof ContainerBuilder) {
 
             $data = loadResource(path_join(DIRECTORY_SEPARATOR, __DIR__, "config", "compiler.php"));
-            $config = Config::fromArray($data['compiler']);
+            $config = Config::fromArray($data['compiler']['config']);
             $config->build();
 
             $this->container = $this->builder->enableCompilation("{$root}/.cache/build")
@@ -76,8 +76,9 @@ class Application implements ApplicationInterface
     {
         if (!($this->container instanceof Container)) {
             $this->container = $this->builder->build();
-            $this->container->set(self::class, $this);
         }
+        
+        $this->container->set(self::class, $this);
 
         return $this->container;
     }
@@ -133,10 +134,10 @@ class Application implements ApplicationInterface
 
     public function run(): void
     {
-        $container = $this->build();
+        $this->build();
 
         /** @var RequestHandlerRunner $runner */
-        $runner = $container->get(RequestHandlerRunner::class);
+        $runner = $this->container->get(RequestHandlerRunner::class);
         $runner->run();
 
         $this->logStartUp();
