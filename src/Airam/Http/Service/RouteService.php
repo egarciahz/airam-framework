@@ -4,6 +4,7 @@ namespace Airam\Http\Service;
 
 use Airam\Http\Lib\Match;
 use Airam\Http\Lib\RouterStatusInterface;
+use Airam\Http\Route;
 use Airam\Http\Router;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -61,9 +62,9 @@ class RouteService
         return new Match($this->request, $this->status);
     }
 
-    public function __call($name, $arguments)
+    public function redirect(string $path)
     {
-        return $this->request->getAttribute($name);
+        return Route::redirect($path);
     }
 
     public function __invoke(ServerRequestInterface &$request)

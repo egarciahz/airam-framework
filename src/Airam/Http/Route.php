@@ -3,6 +3,7 @@
 namespace Airam\Http;
 
 use InvalidArgumentException;
+use Laminas\Diactoros\Response;
 
 class Route
 {
@@ -54,6 +55,16 @@ class Route
 
         $router = Router::getInstance();
         $router->addRoute($httpMethod, $route, $handler);
+    }
+    
+    /**
+     * @todo check this functionality
+     */
+    static public function redirect(string $path): Response
+    {
+        $response = new Response;
+        $response = $response->withHeader("Location", $path)->withStatus(302);
+        return $response;
     }
 
     static public function addGroup($route, callable $group)
