@@ -2,7 +2,13 @@
 
 namespace Airam;
 
+/** 
+ * default namespace name for Airam proxy files
+ */
+define("AIRAM_PROXY_NAMESPACE", "Airam\\Proxy");
+
 use Airam\Application;
+
 use DI\ContainerBuilder;
 use Dotenv\Dotenv;
 use Dotenv\Repository\RepositoryBuilder;
@@ -55,7 +61,7 @@ function applicationFactory($root_dir): Application
 
     $app->addDefinitions(__DIR__ . '/config/application.php');
     $app->addDefinitions(__DIR__ . '/config/compiler.php');
-    //$app->addDefinitions(__DIR__ . '/config/orm.php');
+    $app->addDefinitions(__DIR__ . '/ORM/config.php');
 
     return $app;
 };
