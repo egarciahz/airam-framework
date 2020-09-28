@@ -11,6 +11,11 @@ use function DI\factory;
  * @return array definitions of compiler
  */
 return [
+    "ProductionMode" => false,
+    "CompilerOptions" => factory(function (ContainerInterface $c) {
+        $compiler = $c->get("compiler");
+        return Compiler::buildMaps($compiler);
+    }),
     "compiler" => [
         "config" => [
             "root" => ".cache",
@@ -18,6 +23,7 @@ return [
             "subdirs" => [
                 "render",
                 "build",
+                "build/proxy",
                 "temp",
             ]
         ],
@@ -52,17 +58,13 @@ return [
             "watch" => null
         ],
         // doctrine
-        "orm" => [
+        "doctrine" => [
             "target" => "{root}/build/proxy",
             "watch" => [
                 "files" => [".php"],
-                "dirname" => "{watch}/Entities",
+                "dirname" => "{watch}/Entity",
                 "exclude" => ["lib"]
             ]
         ]
-    ],
-    "CompilerOptions" => factory(function (ContainerInterface $c) {
-        $compiler = $c->get("compiler");
-        return Compiler::buildMaps($compiler);
-    }),
+    ]
 ];
