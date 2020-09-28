@@ -29,6 +29,7 @@ use Airam\Service\ApplicationService;
 use Airam\Template\Middleware\TemplateHandler;
 use Airam\Template\Render\Engine as TemplateEngine;
 use Airam\Commons\ApplicationService as ApplicationServiceInterface;
+use DI\Container;
 // FastRoute
 use FastRoute\DataGenerator\GroupCountBased as RouterDataGenerator;
 use FastRoute\RouteParser\Std as RouteStdParser;
@@ -63,7 +64,7 @@ return [
     RouteParser::class => create(RouteStdParser::class),
     DataGenerator::class => create(RouterDataGenerator::class),
     // --
-    TemplateHandler::class => create()->constructor(get(ContainerInterface::class), function () {
+    TemplateHandler::class => create()->constructor(get(Container::class), function () {
         return new Response;
     }),
     TemplateEngine::class => create()->constructor(get("compiler"), get(ContainerInterface::class)),
