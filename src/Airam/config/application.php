@@ -14,7 +14,12 @@ use Middlewares\Whoops as WhoopsHandler;
 
 // Whoops
 use Whoops\Run as Whoops;
-use Whoops\Handler\PrettyPageHandler as WhoopsPrettyPageHandler;
+use Whoops\Util\Misc;
+use Whoops\Handler\{
+    PrettyPageHandler as WhoopsPrettyPageHandler,
+    JsonResponseHandler as WhoopsJsonHandler,
+    PlainTextHandler as WhoopsTextHandler
+};
 
 // Application
 use Airam\Http\Route;
@@ -75,26 +80,28 @@ return [
 
         return $stack;
     }),
-    WhoopsHandler::class => factory(function (ContainerInterface $c) {
+    Whoops::class => factory(function (ContainerInterface $c) {
         $whoops = new Whoops();
-        $responseFactory = new ResponseFactory();
 
-        $page = new WhoopsPrettyPageHandler();
-        $page->setPageTitle(getenv("PAGE_TITLE"));
-        $page->setEditor("vscode");
+        if (Misc::isAjaxRequest()) {
+            $handler = new WhoopsJsonHandler();
+        } else if (Misc::isCommandLine()) {
+            $handler = new  WhoopsTextHandler();
+        } else {
+            $handler = new WhoopsPrettyPageHandler();
+            $handler->setPageTitle(getenv("APP_NAME") . " | Error");
+            $handler->setEditor("vscode");
+        }
 
-        $whoops->pushHandler($page);
-        $handler = new WhoopsHandler($whoops, $responseFactory);
-
-        return $handler;
+        return $whoops->pushHandler($handler);
     }),
     MiddlewarePipe::class => factory(function (ContainerInterface $c) {
         $app = new MiddlewarePipe();
 
         // error handler
-        $app->pipe($c->get(WhoopsHandler::class));
+        $app->pipe(new WhoopsHandler($c->get(Whoops::class), new ResponseFactory()));
 
-
+        // register application pipes
         $app->pipe($c->get(ApplicationHandler::class));
 
         // router handler
