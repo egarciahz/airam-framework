@@ -7,17 +7,17 @@ use Airam\Http\Lib\RouterSplInterface;
 use Airam\Template\Render\Engine as TemplateEngine;
 use Airam\Commons\ApplicationInterface;
 use Airam\Compiler\Config;
-use DI\{Container, ContainerBuilder};
-use Dotenv\Dotenv;
 
+use DI\{Container, ContainerBuilder};
 use Laminas\HttpHandlerRunner\RequestHandlerRunner;
 use Psr\Container\ContainerInterface;
-use RuntimeException;
+use Dotenv\Dotenv;
 
 use function Airam\Commons\loadResource;
 use function Airam\Commons\path_join;
 use function DI\autowire;
 
+use RuntimeException;
 
 class Application implements ApplicationInterface
 {
@@ -51,34 +51,42 @@ class Application implements ApplicationInterface
     public function enableProdMode(): void
     {
         self::$production = true;
-        /** @var string $root */
-        $root = getenv('ROOT_DIR');
-        if ($this->builder instanceof ContainerBuilder) {
 
-            $data = loadResource(path_join(DIRECTORY_SEPARATOR, __DIR__, "config", "compiler.php"));
-            $config = Config::fromArray($data['compiler']['config']);
-            $config->build();
-
-            $this->container = $this->builder->enableCompilation("{$root}/.cache/build")
-                ->writeProxiesToFile(true, "{$root}/.cache/tmp/proxies")
-                ->ignorePhpDocErrors(true)
-                ->build();
-
-            $router = $this->container->get(Router::class);
-            $router->enableCompilation("{$root}/.cache/build");
-
-            $engine = $this->container->get(TemplateEngine::class);
-            $engine->enableCompilation();
-        }
+        $data = loadResource(path_join(DIRECTORY_SEPARATOR, __DIR__, "config", "compiler.php"));
+        $config = Config::fromArray($data['compiler']['config']);
+        $config->build();
     }
 
     public function build(): ContainerInterface
     {
+        /** 
+         * Is applicatione is production
+         */
+        define("AIRAM_PRODUCTION_MODE", self::$production);
+
+        $root = ROOT_DIR;
         if (!($this->container instanceof Container)) {
-            $this->container = $this->builder->build();
+            if (static::$production) {
+
+                $this->container = $this->builder->enableCompilation("{$root}/.cache/build")
+                    ->enableDefinitionCache(AIRAM_PROXY_NAMESPACE)
+                    ->writeProxiesToFile(true, "{$root}/.cache/tmp/proxies")
+                    ->ignorePhpDocErrors(true)
+                    ->build();
+
+                $router = $this->container->get(Router::class);
+                $router->enableCompilation("{$root}/.cache/build");
+
+                $engine = $this->container->get(TemplateEngine::class);
+                $engine->enableCompilation();
+            } else {
+
+                $this->container = $this->builder->build();
+            }
         }
-        
+
         $this->container->set(self::class, $this);
+        $this->container->set("ProductionMode", static::$production);
 
         return $this->container;
     }
