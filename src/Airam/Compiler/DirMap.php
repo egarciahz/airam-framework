@@ -2,7 +2,6 @@
 
 namespace Airam\Compiler;
 
-use Dotenv\Store\FileStore;
 use RuntimeException;
 
 class DirMap

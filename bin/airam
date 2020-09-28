@@ -1,4 +1,2 @@
 #!/usr/bin/env php
 <?php
-
-include("airam.php");

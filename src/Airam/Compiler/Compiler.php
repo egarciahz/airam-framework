@@ -22,7 +22,7 @@ class Compiler
             try {
                 return DirMap::fromSchema($scheme, trim($name));
             } catch (Exception $error) {
-                $message = sprintf("Durin '%s' rule compilation, %s", $name,  $error->getMessage());
+                $message = sprintf("During '%s' rule compilation, %s", $name,  $error->getMessage());
                 throw new RuntimeException($message, 0, $error);
             }
         }, $keys);

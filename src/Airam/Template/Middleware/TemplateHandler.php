@@ -17,13 +17,14 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 use function Airam\Template\Lib\{is_template};
 use Closure;
+use DI\Container;
 
 class TemplateHandler implements MiddlewareInterface
 {
     private $app;
     private $response;
 
-    public function __construct(ContainerInterface $app, ResponseInterface $response)
+    public function __construct(Container $app, ResponseInterface $response)
     {
         $this->app = $app;
         $this->response = $response;
@@ -49,8 +50,11 @@ class TemplateHandler implements MiddlewareInterface
             return $handler->handle($request);
         }
 
-        if ($routeHandler instanceof Closure) {
-            $result = call_user_func($routeHandler, $request);
+        // register the request server data
+        $this->app->set(ServerRequestInterface::class, $request);
+
+        if ($routeHandler instanceof Closure || is_callable($routeHandler)) {
+            $result =  $this->app->call($routeHandler,  ["request" => $request]);
         }
 
         if (is_template($routeHandler) && !$result) {
@@ -68,10 +72,6 @@ class TemplateHandler implements MiddlewareInterface
             }
 
             $result = new HtmlResponse($html);
-        }
-
-        if (is_callable($routeHandler) && !$result) {
-            $result = call_user_func($routeHandler, $request);
         }
 
         if (!$result) {

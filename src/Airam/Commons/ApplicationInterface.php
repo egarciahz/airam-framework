@@ -4,6 +4,7 @@ namespace Airam\Commons;
 
 use DI\ContainerBuilder;
 use Dotenv\Dotenv;
+use Psr\Container\ContainerInterface;
 
 interface ApplicationInterface
 {
@@ -23,5 +24,6 @@ interface ApplicationInterface
     public static function isDevMode(): bool;
 
     public function getDotenv(): Dotenv;
+    public function build(): ContainerInterface;
     public function run();
 }

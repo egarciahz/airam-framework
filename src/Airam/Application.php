@@ -7,16 +7,17 @@ use Airam\Http\Lib\RouterSplInterface;
 use Airam\Template\Render\Engine as TemplateEngine;
 use Airam\Commons\ApplicationInterface;
 use Airam\Compiler\Config;
-use DI\{Container, ContainerBuilder};
-use Dotenv\Dotenv;
 
+use DI\{Container, ContainerBuilder};
 use Laminas\HttpHandlerRunner\RequestHandlerRunner;
-use RuntimeException;
+use Psr\Container\ContainerInterface;
+use Dotenv\Dotenv;
 
 use function Airam\Commons\loadResource;
 use function Airam\Commons\path_join;
 use function DI\autowire;
 
+use RuntimeException;
 
 class Application implements ApplicationInterface
 {
@@ -50,25 +51,44 @@ class Application implements ApplicationInterface
     public function enableProdMode(): void
     {
         self::$production = true;
-        /** @var string $root */
-        $root = getenv('ROOT_DIR');
-        if ($this->builder instanceof ContainerBuilder) {
 
-            $data = loadResource(path_join(DIRECTORY_SEPARATOR, __DIR__, "config", "compiler.php"));
-            $config = Config::fromArray($data['compiler']);
-            $config->build();
+        $data = loadResource(path_join(DIRECTORY_SEPARATOR, __DIR__, "config", "compiler.php"));
+        $config = Config::fromArray($data['compiler']['config']);
+        $config->build();
+    }
 
-            $this->container = $this->builder->enableCompilation("{$root}/.cache/build")
-                ->writeProxiesToFile(true, "{$root}/.cache/tmp/proxies")
-                ->ignorePhpDocErrors(true)
-                ->build();
+    public function build(): ContainerInterface
+    {
+        /** 
+         * Is applicatione is production
+         */
+        define("AIRAM_PRODUCTION_MODE", self::$production);
 
-            $router = $this->container->get(Router::class);
-            $router->enableCompilation("{$root}/.cache/build");
+        $root = ROOT_DIR;
+        if (!($this->container instanceof Container)) {
+            if (static::$production) {
 
-            $engine = $this->container->get(TemplateEngine::class);
-            $engine->enableCompilation();
+                $this->container = $this->builder->enableCompilation("{$root}/.cache/build")
+                    ->enableDefinitionCache(AIRAM_PROXY_NAMESPACE)
+                    ->writeProxiesToFile(true, "{$root}/.cache/tmp/proxies")
+                    ->ignorePhpDocErrors(true)
+                    ->build();
+
+                $router = $this->container->get(Router::class);
+                $router->enableCompilation("{$root}/.cache/build");
+
+                $engine = $this->container->get(TemplateEngine::class);
+                $engine->enableCompilation();
+            } else {
+
+                $this->container = $this->builder->build();
+            }
         }
+
+        $this->container->set(self::class, $this);
+        $this->container->set("ProductionMode", static::$production);
+
+        return $this->container;
     }
 
     public function addDefinitions(...$definitions): void
@@ -112,7 +132,7 @@ class Application implements ApplicationInterface
             "*****************************************"
         ];
 
-        error_log("\n" . join("\n", $log));
+        $this->isProdMode() ?: error_log("\n" . join("\n", $log));
     }
 
     public function getDotenv(): Dotenv
@@ -122,12 +142,7 @@ class Application implements ApplicationInterface
 
     public function run(): void
     {
-
-        if (!($this->container instanceof Container)) {
-            $this->container = $this->builder->build();
-        }
-
-        $this->container->set(self::class, $this);
+        $this->build();
 
         /** @var RequestHandlerRunner $runner */
         $runner = $this->container->get(RequestHandlerRunner::class);

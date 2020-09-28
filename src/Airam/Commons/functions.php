@@ -9,6 +9,8 @@ use RegexIterator;
 
 use ReflectionClass;
 use Closure;
+use Dotenv\Exception\ValidationException;
+use InvalidArgumentException;
 
 function randomId(int $length = 16): string
 {
@@ -109,3 +111,33 @@ function matchFilesByExtension(string $folder, array $extensions, array $ignoreD
 
     return $fileList;
 }
+
+function checkEnvScheme(array $scheme, array $model, callable $predicate = null)
+{
+    $model_filter = array();
+    $missings = array();
+    foreach ($scheme as $attr => $required) {
+        if ((bool) $required) {
+            if (!in_array($attr, array_keys($model))) {
+                $missings[] = $attr;
+                continue;
+            }
+        }
+
+        if (isset($model[$attr])) {
+            $model_filter[$attr] = $model[$attr];
+        }
+    }
+
+    if (count($missings) > 0) {
+        if ($predicate) {
+            $missings = $predicate($missings);
+        }
+        throw new ValidationException(\sprintf(
+            'One or more variables failed assertions: %s.',
+            \implode(', ', $missings)
+        ));
+    }
+
+    return $model_filter;
+};
