@@ -39,7 +39,7 @@ return [
         "templates" => [
             "target" => "{root}/render/templates/{filename}.php",
             "watch" => [
-                "files" => [".template.html"],
+                "files" => [".template.hbs"],
                 "dirname" => "{watch}/Client",
                 "exclude" => ["helper", "helpers", "partial", "partials", "lib"]
             ],
@@ -47,7 +47,7 @@ return [
         "partials" => [
             "target" => "{root}/render/partials/partials.bundle.php",
             "watch" => [
-                "files" => [".hbs", ".partial.html", ".partial.hbs"],
+                "files" => [".hbs", ".partial.hbs"],
                 "dirname" => "{watch}/Client",
                 "exclude" => ["helper", "helpers", "partial", "partials", "lib"]
             ],

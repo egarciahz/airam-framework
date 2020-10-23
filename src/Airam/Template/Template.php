@@ -20,7 +20,7 @@ trait Template
      * @var array $template_file_conf This property provide data config for template name making.
      */
     private static $template_file_conf = [
-        "ext" => "template.html",
+        "ext" => "template.hbs",
     ];
 
     public $yield = "main";
