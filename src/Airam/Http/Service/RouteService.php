@@ -44,7 +44,7 @@ class RouteService
      */
     public function getData()
     {
-        $this->request->getParsedBody();
+        return $this->request->getParsedBody();
     }
 
     public function getFiles(): array

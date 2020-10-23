@@ -72,7 +72,7 @@
             <strong> <?= $code; ?> </strong>
             <div class="text-container">
                 <b class="title">
-                    <?= ($title ?: "HTTP Error"); ?>
+                    <?= (isset($title) ? $title : "HTTP Error"); ?>
                 </b>
                 <small class="subtitle">
                     <span><?= $message; ?></span><br>
