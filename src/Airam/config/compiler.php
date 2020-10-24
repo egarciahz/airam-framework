@@ -47,7 +47,7 @@ return [
         "partials" => [
             "target" => "{root}/render/partials/partials.bundle.php",
             "watch" => [
-                "files" => [".hbs", ".partial.hbs"],
+                "files" => [".partial.hbs"],
                 "dirname" => "{watch}/Client",
                 "exclude" => ["helper", "helpers", "partial", "partials", "lib"]
             ],
