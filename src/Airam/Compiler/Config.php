@@ -34,4 +34,10 @@ class Config
         FileSystem::makeDirectoryMap($this->root, $this->subdirs);
         FileSystem::makeDirectory($this->tmp);
     }
+
+    public function buildAt()
+    {
+        FileSystem::remove($this->root);
+        $this->build();
+    }
 }

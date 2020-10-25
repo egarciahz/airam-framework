@@ -6,6 +6,7 @@ namespace Airam;
  * default namespace name for Airam proxy files
  */
 define("AIRAM_PROXY_NAMESPACE", "Airam\\Proxy");
+define("AIRAM_CACHE_NAMESPACE", "Airam\\Cache");
 
 use Airam\Application;
 
@@ -19,16 +20,19 @@ use Dotenv\Repository\Adapter\{
 
 use function Airam\Commons\path_join;
 use Exception;
+use Error;
 
 
 function applicationFactory($root_dir): Application
 {
-
-    $dir = realpath($root_dir);
     /**
      * application root directory
      */
-    define("ROOT_DIR", $dir);
+    if ($dir = realpath($root_dir)) {
+        define("ROOT_DIR", $dir);
+    } else {
+        throw new Error("Could not be found root path: {$root_dir}");
+    }
 
     try {
         $repository = RepositoryBuilder::createWithNoAdapters()
@@ -38,9 +42,11 @@ function applicationFactory($root_dir): Application
             ->make();
 
         $repository->set('ROOT_DIR', $dir);
+        $repository->set('AT_COMPILATION', "disabled");
         $dotenv = Dotenv::create($repository, $dir);
 
         $dotenv->load();
+        $dotenv->required('AT_COMPILATION')->allowedValues(['disabled', 'enabled']);
         $dotenv->required('ENVIRONMENT')->allowedValues(['development', 'production']);
         $dotenv->required('ROOT_DIR');
         $dotenv->required('APP_NAME');
@@ -62,8 +68,7 @@ function applicationFactory($root_dir): Application
         // response to the client
         header("Content-Type: text/html");
         header("HTTP/1.1 500 Server Error");
-        echo $response;
-        exit;
+        die($response);
     }
 
     /** @var Application $app */

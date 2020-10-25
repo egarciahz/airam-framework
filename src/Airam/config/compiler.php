@@ -23,8 +23,7 @@ return [
             "subdirs" => [
                 "render",
                 "build",
-                "build/proxy",
-                "temp",
+                ["build", "proxy"]
             ]
         ],
         // configurations for Template

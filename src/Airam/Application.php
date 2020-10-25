@@ -6,6 +6,7 @@ use Airam\Http\Router;
 use Airam\Http\Lib\RouterSplInterface;
 use Airam\Template\Render\Engine as TemplateEngine;
 use Airam\Commons\ApplicationInterface;
+use Airam\Compiler\{Compilable, Compiler};
 use Airam\Compiler\Config;
 
 use DI\{Container, ContainerBuilder};
@@ -21,6 +22,8 @@ use RuntimeException;
 
 class Application implements ApplicationInterface
 {
+    /** @var bool $enableCompilationAT */
+    private  $enableCompilationAT = false;
 
     /** @var bool $production */
     private static $production = false;
@@ -42,6 +45,7 @@ class Application implements ApplicationInterface
     public function __construct(ContainerBuilder $builder, Dotenv $env)
     {
         $this->env = $env;
+        $this->enableCompilationAT = getenv("AT_COMPILATION") === "enabled";
 
         $this->builder = $builder;
         $this->builder->useAnnotations(true);
@@ -54,7 +58,8 @@ class Application implements ApplicationInterface
 
         $data = loadResource(path_join(DIRECTORY_SEPARATOR, __DIR__, "config", "compiler.php"));
         $config = Config::fromArray($data['compiler']['config']);
-        $config->build();
+        // check that compilation at time is enabled
+        $this->enableCompilationAT ? $config->buildAt() : $config->build();
     }
 
     public function build(): ContainerInterface
@@ -63,6 +68,8 @@ class Application implements ApplicationInterface
          * Is applicatione is production
          */
         define("AIRAM_PRODUCTION_MODE", self::$production);
+        // enabble logger for compiler
+        Compiler::$enable_log = !self::$production || $this->enableCompilationAT;
 
         $root = ROOT_DIR;
         if (!($this->container instanceof Container)) {

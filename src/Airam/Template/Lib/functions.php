@@ -6,10 +6,7 @@ use Airam\Template\{Template, Layout};
 use Airam\Template\Render\Renderable;
 use Closure;
 
-use function Airam\Commons\{
-    class_use,
-    closureFactory
-};
+use function Airam\Commons\class_use;
 use function str_replace;
 
 function makeTemplateFileName(string $origin)
@@ -32,23 +29,6 @@ function is_layout($ref)
 
 function is_renderable($ref){
     return class_use($ref, Renderable::class);
-}
-
-function closureCodeCompiler(Closure $closure, string $name)
-{
-    if ($closure instanceof Closure) {
-        $code = closureFactory($closure);
-        return " \"{$name}\" => {$code}";
-    }
-    return " \"{$name}\" => \"passport\" ";
-}
-
-/**
- * neutral element of render
- */
-function passport()
-{
-    return null;
 }
 
 function cleanFileName(string $path){

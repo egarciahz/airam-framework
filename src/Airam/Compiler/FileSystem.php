@@ -4,6 +4,8 @@ namespace Airam\Compiler;
 
 use function Airam\Commons\path_join;
 use function Airam\Template\Lib\cleanFileName;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use RuntimeException;
 
 class FileSystem
@@ -61,6 +63,21 @@ class FileSystem
         }
 
         return $written;
+    }
+
+    public static function remove(string $path)
+    {
+        $cursor = new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS);
+        $nodes = new RecursiveIteratorIterator($cursor, RecursiveIteratorIterator::CHILD_FIRST);
+        foreach ($nodes as $inode) {
+            if ($inode->isDir()) {
+                rmdir($inode->getRealPath());
+            } else {
+                unlink($inode->getRealPath());
+            }
+        }
+
+        rmdir($path);
     }
 
     private static function error(string $message)
