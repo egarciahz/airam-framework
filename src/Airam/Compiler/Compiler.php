@@ -10,6 +10,7 @@ use Exception;
 
 class Compiler
 {
+    static public $enable_log = false;
     /**
      * @return array<string,DirMap>
      */
@@ -93,6 +94,7 @@ class Compiler
 
     public static function compile($value, bool $isRetornable = true)
     {
+        !self::$enable_log ?: error_log("Compiling...");
         $code = static::compileValue($value);
         return $isRetornable ? static::returnWrapper($code) : "{$code};";
     }
@@ -109,7 +111,7 @@ class Compiler
      */
     public static function bundle($value, string $path, string $namespace = null, array $usages = [], bool $isRawValue = false)
     {
-
+        !self::$enable_log ?: error_log("Bundling: " . $path);
         $data = new DataTokens;
         $data->filename = $path;
 
