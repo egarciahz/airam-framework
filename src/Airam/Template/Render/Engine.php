@@ -2,6 +2,7 @@
 
 namespace Airam\Template\Render;
 
+use Airam\Compiler\Compilable;
 use Airam\Compiler\Compiler;
 use Airam\Compiler\DirMap;
 use Airam\Template\LayoutInterface;
@@ -22,15 +23,16 @@ use Psr\Container\ContainerInterface;
 use ErrorException;
 use Closure;
 
-class Engine
+class Engine implements Compilable
 {
     private $isDevMode = true;
+    private $atCompilationIsEnabled = false;
 
     private static $context = [];
     private $config;
 
     private static $partials = [];
-    public static $helpers = [];
+    private static $helpers = [];
 
     public function __construct(array $config, ContainerInterface $app)
     {
@@ -67,7 +69,7 @@ class Engine
         }
 
         !$this->isDevMode ?: error_log(sprintf("bundle helpers: %s", $map->getPath()));
-        return Compiler::bundle(static::$helpers, $map->getPath(), "Airam\Cache");
+        return Compiler::bundle(static::$helpers, $map->getPath(), AIRAM_CACHE_NAMESPACE);
     }
 
     /**
@@ -202,18 +204,19 @@ class Engine
         return array_merge($context, $overrides);
     }
 
-    public function enableCompilation()
+    public function enableCompilation(?string $path, bool $at): self
     {
+        $this->atCompilationIsEnabled = $at;
         $this->isDevMode = false;
         return $this;
     }
 
-    public function build()
+    public function build(): void
     {
         $maps = Compiler::buildMaps($this->config);
 
         $helpers = $maps["helpers"];
-        if ($this->isDevMode ?: !$helpers->isFileExist()) {
+        if ($this->atCompilationIsEnabled ?: ($this->isDevMode ?: !$helpers->isFileExist())) {
             $this->compileHelpers(
                 matchFilesByExtension(
                     $helpers->getDirname(),
@@ -225,7 +228,7 @@ class Engine
         }
 
         $partials = $maps["partials"];
-        if ($this->isDevMode ?: !$partials->isFileExist()) {
+        if ($this->atCompilationIsEnabled ?: ($this->isDevMode ?: !$partials->isFileExist())) {
             $this->compilePartials(
                 matchFilesByExtension(
                     $partials->getDirname(),
