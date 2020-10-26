@@ -18,13 +18,13 @@ class RouterHandler implements MiddlewareInterface
 {
     /** @var Router $dispatcher */
     private $dispatcher;
-    /** @var ContainerInterface $provider */
-    private $provider;
+    /** @var ContainerInterface $app */
+    private $app;
 
-    public function __construct(Router $dispatcher, ContainerInterface $provider)
+    public function __construct(Router $dispatcher, ContainerInterface $app)
     {
         $this->dispatcher = $dispatcher;
-        $this->provider = $provider;
+        $this->app = $app;
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -80,11 +80,11 @@ class RouterHandler implements MiddlewareInterface
     {
         if (gettype($handler) === "array") {
 
-            if (!$this->provider->has($handler[0])) {
+            if (!$this->app->has($handler[0])) {
                 return [StatusCode::HTTP_INTERNAL_SERVER_ERROR_CODE, null, "Class handler '{$handler[0]}' could not be found."];
             }
 
-            $object = $this->provider->get($handler[0]);
+            $object = $this->app->get($handler[0]);
             if (method_exists($object, $handler[1])) {
                 $method = new ReflectionMethod($object, $handler[1]);
                 $handler = $method->getClosure($object);
@@ -93,11 +93,11 @@ class RouterHandler implements MiddlewareInterface
             }
         } else if (gettype($handler) === "string") {
 
-            if (!$this->provider->has($handler)) {
+            if (!$this->app->has($handler)) {
                 return [StatusCode::HTTP_INTERNAL_SERVER_ERROR_CODE, null, "Class handler '{$handler}' could not be found."];
             }
 
-            $handler = $this->provider->get($handler);
+            $handler = $this->app->get($handler);
         }
 
         return [StatusCode::HTTP_OK_CODE, $handler, StatusCode::getMessage(StatusCode::HTTP_OK_CODE)];
