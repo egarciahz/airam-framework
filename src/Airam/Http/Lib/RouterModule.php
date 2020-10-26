@@ -4,8 +4,11 @@ namespace Airam\Http\Lib;
 
 use Airam\Commons\ApplicationService;
 
-interface RouterSplInterface
+interface RouterModule
 {
     public function __construct(ApplicationService $proider);
-    public function register(): void;
+    /**
+     * @return array<string>
+     */
+    public function register(): array;
 }

@@ -13,8 +13,6 @@ interface ApplicationService
 
     public function app(): ContainerInterface;
 
-    public function register(string $path): void;
-
     public function pushMiddleware(MiddlewareInterface $middleware): void;
 
     public function run(ServerRequestInterface $request): ResponseInterface;
