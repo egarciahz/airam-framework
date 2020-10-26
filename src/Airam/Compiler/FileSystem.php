@@ -4,6 +4,7 @@ namespace Airam\Compiler;
 
 use function Airam\Commons\path_join;
 use function Airam\Template\Lib\cleanFileName;
+
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
@@ -20,7 +21,7 @@ class FileSystem
     {
         static::makeDirectory($base);
         foreach ($subdirs as $sub) {
-            $sub =  realpath(path_join(DIRECTORY_SEPARATOR, $base, $sub));
+            $sub = path_join(DIRECTORY_SEPARATOR, $base, $sub);
             static::makeDirectory($sub);
         }
     }
@@ -28,7 +29,7 @@ class FileSystem
     public static function makeDirectory(string $directory)
     {
         if (!is_dir($directory) && !@mkdir($directory, 0777, true)) {
-            return static::error(sprintf('Compilation directory does not exist and can not be created: %s.', $directory));
+            return static::error(sprintf('Compilation directory does not exist and can not be created: [%s]', $directory));
         }
         if (!is_writable($directory)) {
             return static::error(sprintf('Compilation directory is not writable: %s.', $directory));
