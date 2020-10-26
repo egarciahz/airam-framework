@@ -73,27 +73,32 @@ class Application implements ApplicationInterface
 
         $root = ROOT_DIR;
         if (!($this->container instanceof Container)) {
-            if (static::$production) {
 
+            if (static::$production) {
                 $this->container = $this->builder->enableCompilation("{$root}/.cache/build")
                     ->enableDefinitionCache(AIRAM_PROXY_NAMESPACE)
                     ->writeProxiesToFile(true, "{$root}/.cache/tmp/proxies")
                     ->ignorePhpDocErrors(true)
                     ->build();
-
-                $router = $this->container->get(Router::class);
-                $router->enableCompilation("{$root}/.cache/build");
-
-                $engine = $this->container->get(TemplateEngine::class);
-                $engine->enableCompilation();
             } else {
-
                 $this->container = $this->builder->build();
             }
         }
-
-        $this->container->set(self::class, $this);
         $this->container->set("ProductionMode", static::$production);
+
+        /** @var Compilable $router */
+        $router = $this->container->get(Router::class);
+
+        /** @var Compilable $templating */
+        $templating = $this->container->get(TemplateEngine::class);
+
+        if (self::$production) {
+            $router->enableCompilation("{$root}/.cache/build", $this->enableCompilationAT);
+            $templating->enableCompilation(null, $this->enableCompilationAT);
+        }
+
+        $router->build();
+        $templating->build();
 
         return $this->container;
     }
@@ -112,7 +117,7 @@ class Application implements ApplicationInterface
         }
 
         if (false == array_search(RouterSplInterface::class, class_implements($class_name))) {
-            throw new RuntimeException("RouterModule [$class_name] is not an implementation of RouterSplInterface");
+            throw new RuntimeException("RouterModule [$class_name] is not an implementation of " . RouterSplInterface::class);
         }
 
         if (!$this->container) {
@@ -133,7 +138,7 @@ class Application implements ApplicationInterface
             "* Airam Framework",
             "*",
             "* Running on : " . ($_SERVER["SERVER_NAME"] . ":" . $_SERVER["SERVER_PORT"]),
-            "* Production : " . (self::$production ? "Enabled" : "Disabled"),
+            "* Production : " . (self::$production ? "Enabled" : "Disabled") . (!$this->enableCompilationAT ?: " AT"),
             "* Root Folder: " . $_SERVER["DOCUMENT_ROOT"],
             "*",
             "*****************************************"
